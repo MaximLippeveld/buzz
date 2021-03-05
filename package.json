@@ -1,0 +1,24 @@
+{
+  "name": "buzz",
+  "version": "0.0.1",
+  "description": "Interactive visualization tool for dimensionality reduced imaging data.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.ugent.be:mlippeve/buzz.git"
+  },
+  "keywords": [
+    "visualization",
+    "imaging"
+  ],
+  "author": "Maxim Lippeveld",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "alpinejs": "^2.8.1",
+    "d3": "^6.5.0",
+    "tailwindcss": "^2.0.3"
+  }
+}
