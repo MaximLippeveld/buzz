@@ -4,7 +4,16 @@
   "description": "Interactive visualization tool for dimensionality reduced imaging data.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npm run dev",
+    "build": "npm run build:clean && npm run build:sass && npm run build:postcss && npm run build:cleancss && webpack",
+    "build:clean": "rimraf dist/css",
+    "build:sass": "node-sass --output-style compressed src/styles.scss dist/css/styles.css",
+    "build:postcss": "cross-env NODE_ENV=production postcss --config . --map false --output dist/css/styles.css dist/css/styles.css",
+    "build:cleancss": "cleancss -o dist/css/styles.css dist/css/styles.css",
+    "dev": "watch \"npm run dev:sass && npm run dev:postcss && webpack --watch\" ./src",
+    "dev:sass": "node-sass --output-style expanded --source-map true src/styles.scss dist/css/styles.css",
+    "dev:postcss": "postcss --config . --map true --output dist/css/styles.css dist/css/styles.css",
+    "dev:serve": "webpack serve --open"
   },
   "repository": {
     "type": "git",
@@ -20,5 +29,19 @@
     "alpinejs": "^2.8.1",
     "d3": "^6.5.0",
     "tailwindcss": "^2.0.3"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.2.4",
+    "clean-css-cli": "^4.3.0",
+    "cross-env": "^7.0.3",
+    "node-sass": "^5.0.0",
+    "postcss": "^8.2.7",
+    "postcss-cli": "^8.3.1",
+    "postcss-scss": "^3.0.4",
+    "rimraf": "^3.0.2",
+    "tailwindcss": "^2.0.1",
+    "watch": "^1.0.2",
+    "webpack-cli": "^4.5.0",
+    "webpack-dev-server": "^3.11.2"
   }
 }
