@@ -9,10 +9,11 @@
     <meta name="author" content="Maxim Lippeveld"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="stylesheet" href="dist/css/styles.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body x-data="app()">
-    <div class="mx-8" x-text="test"></div>
-    <script type="text/javascript" src="dist/js/bundle.js"></script>
+    <input type="file" x-ref="inputter" @change="load()"/>
+    <div class="mx-8" x-text="dataFile"></div>
+    <script type="text/javascript" src="/bin/main.js"></script>
 </body>
 </html>

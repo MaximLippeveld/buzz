@@ -2,7 +2,7 @@
   "name": "buzz",
   "version": "0.0.1",
   "description": "Interactive visualization tool for dimensionality reduced imaging data.",
-  "main": "index.js",
+  "main": "./src/js/index.js",
   "scripts": {
     "start": "npm run dev",
     "build": "npm run build:clean && npm run build:sass && npm run build:postcss && npm run build:cleancss && webpack",
@@ -10,10 +10,10 @@
     "build:sass": "node-sass --output-style compressed src/styles.scss dist/css/styles.css",
     "build:postcss": "cross-env NODE_ENV=production postcss --config . --map false --output dist/css/styles.css dist/css/styles.css",
     "build:cleancss": "cleancss -o dist/css/styles.css dist/css/styles.css",
-    "dev": "watch \"npm run dev:sass && npm run dev:postcss && webpack --watch\" ./src",
-    "dev:sass": "node-sass --output-style expanded --source-map true src/styles.scss dist/css/styles.css",
+    "dev:html": "watch \"npm run dev:sass && npm run dev:postcss && cp src/html/index.html dist/ \" ./src/html",
+    "dev:sass": "node-sass --output-style expanded --source-map true src/css/styles.scss dist/css/styles.css",
     "dev:postcss": "postcss --config . --map true --output dist/css/styles.css dist/css/styles.css",
-    "dev:serve": "webpack serve --open"
+    "dev:serve": "webpack serve"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,7 @@
   "dependencies": {
     "alpinejs": "^2.8.1",
     "d3": "^6.5.0",
+    "papaparse": "^5.3.0",
     "tailwindcss": "^2.0.3"
   },
   "devDependencies": {
