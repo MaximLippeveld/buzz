@@ -11,9 +11,9 @@
 
     <link rel="stylesheet" href="/css/styles.css" />
 </head>
-<body x-data="app()">
-    <input type="file" x-ref="inputter" @change="load()"/>
-    <div class="mx-8" x-text="dataFile"></div>
+<body x-data="app = app()" x-init="load()" class="w-full h-screen">
+    <!-- <canvas use-device-pixel-ratio set-webgl-viewport id="chart"></canvas> -->
+    <div id="chart"></div>
     <script type="text/javascript" src="/bin/main.js"></script>
 </body>
 </html>
