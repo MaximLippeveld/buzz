@@ -1,51 +1,17 @@
 import 'alpinejs';
-import { data } from 'autoprefixer';
 import * as d3 from 'd3';
 import papa from 'papaparse';
 import * as fc from 'd3fc'
 
-window.app = function() {
+const app = function() {
     return {
         data: [],
         result: null,
         parse: function() {
             for (var i = 0; i<this.result.data.length; i++) {
                 const item = this.result.data[i]
-                this.data.push([item.dim_1, item.dim_2])
+                this.data.push([item.dim_1, item.dim_2, i])
             }
-        },
-        webgltest: function() {
-            const data = [4, 6, 8, 6, 0, 10];
-            const canvas = d3.select("#chart").node()
-
-            var width = d3.select("body").node().getBoundingClientRect().width
-            var height = d3.select("body").node().getBoundingClientRect().height
-
-            canvas.width = width
-            canvas.height = height
-
-            console.log(width)
-            console.log(height)
-
-            const xScale = d3.scaleLinear()
-                .domain([0, data.length])
-                .range([0, width]);
-
-            const yScale = d3.scaleLinear()
-                .domain([0, 10])
-                .range([height, 0]);
-
-            const ctx = canvas.getContext('webgl');
-
-            const series = fc.seriesWebglPoint()
-                .xScale(xScale)
-                .yScale(yScale)
-                .crossValue((_, i) => i)
-                .mainValue((d) => d)
-                .size(10)
-                .context(ctx);
-
-            series(data);
         },
         scatter: function() {
             const canvas = d3.select("#chart").node();
@@ -60,21 +26,72 @@ window.app = function() {
             const yScale = d3.scaleLinear()
   					.domain([d3.min(this.data, d => d[1]), d3.max(this.data, d => d[1])])
 
+            const xScaleOriginal = xScale.copy();
+            const yScaleOriginal = yScale.copy();
+
+            const zoom = d3
+                .zoom()
+                .on("zoom", (event, d) => {
+                    xScale.domain(event.transform.rescaleX(xScaleOriginal).domain());
+                    yScale.domain(event.transform.rescaleY(yScaleOriginal).domain());
+                    redraw();
+                });
+
+            const quadtree = d3
+                .quadtree()
+                .x(d => d[0])
+                .y(d => d[1])
+                .addAll(this.data);
+
             const series = fc.seriesWebglPoint()
                 .crossValue(d => d[0])
                 .mainValue(d => d[1])
-                .size(10)
+                .size(1)
 
+            // const annotationSeries = fc.seriesSvgAnnotation()
+            //     .notePadding(15)
+            //     .type(d3.annotationCallout);
+
+            const annotations = [];
             const chart = fc
                 .chartCartesian(xScale, yScale)
                 .webglPlotArea(series)
+                // .svgPlotArea(
+                //     fc
+                //     .seriesSvgMulti()
+                //     .series([annotationSeries])
+                //     .mapping(d => d.annotations)
+                // )
+                .decorate(sel =>
+                    sel
+                    .enter()
+                    .select("d3fc-canvas.plot-area")
+                    .on("measure.range", (event, d) => {
+                        xScaleOriginal.range([0, event.detail.width]);
+                        yScaleOriginal.range([event.detail.height, 0]);
+                    })
+                    .on("click", (event, d) => {
+                        const xy = d3.pointer(event);
+                        const x = xScale.invert(xy[0]);
+                        const y = yScale.invert(xy[1]);
+                        const radius = Math.abs(x - (x - 20));
+                        const closestDatum = quadtree.find(x, y, radius);
+                        
+                        // add annotation
+                    })
+                    .call(zoom)
+                );
 
-            d3.select("#chart")
-                .datum(this.data)
-                .call(chart);
+            const redraw = () => {
+                d3.select("#chart")
+                    .datum(this.data)
+                    .call(chart);
+            }
+
+            redraw();
         },
         load: function() {
-            papa.parse("http://127.0.0.1:8000/weizmann/EhV/weizmann-ehv-metadata/representations/umap/HTR_Low_tp9_zscored_selected_samples_and_features_all.csv", {
+            papa.parse("http://127.0.0.1:8000/weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/HTR_Low_tp9_zscored_selected_samples_and_features_all.csv", {
                 download: true,
                 header: true,
                 dynamicTyping: true,
@@ -87,4 +104,6 @@ window.app = function() {
             })
         },
     }
-}
+};
+
+window.app = app;
