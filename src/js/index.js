@@ -11,7 +11,7 @@ const app = function() {
                 download: true,
                 header: true,
                 dynamicTyping: true,
-                worker: false,
+                worker: true,
                 complete: function(result) {
                     const data = window.app.parse(result)
                     window.app.scatter(data)
@@ -47,6 +47,7 @@ const app = function() {
                 .on("zoom", (event, d) => {
                     xScale.domain(event.transform.rescaleX(xScaleOriginal).domain());
                     yScale.domain(event.transform.rescaleY(yScaleOriginal).domain());
+                    d3.select("g.annotation-tip").selectAll("g").remove();
                     redraw();
                 });
 
@@ -55,25 +56,15 @@ const app = function() {
                 .x(d => d[0])
                 .y(d => d[1])
                 .addAll(data);
-
+                        
+            let annotations = []
             const createAnnotationData = (title, x, y) => ({
                 note: {
-                    title,
-                    label: "Lorem ipsum, lorem ipsum"
+                    title
                 },
-                // annotation location
-                x, y,
-                // offset from annotated point
-                dx: 20, dy: 20
+                x: xScale(x), y: yScale(y),
+                dx: -20, dy: 20
             });
-            const annotations =[]
-            const makeAnnotations = d3Annotation.annotation()
-                .notePadding(15)
-                .accessors({
-                    x: d => d.x,
-                    y: d => d.y
-                })
-                .annotations(annotations)
 
             const chart = fc
                 .chartCartesian(xScale, yScale)
@@ -87,44 +78,61 @@ const app = function() {
                                 .mainValue(d => d[1])
                                 .size(1)
                         ])
-                        .mapping(d => d.data)
+                        .mapping(d => d)
                 )
                 .decorate(sel => {
 
                     sel
                         .enter()
-                        // additionally add a d3fc-svg element for the axis
                         .append('d3fc-svg')
                         .attr("class", "plot-area")
-                        .select("svg")
-                        .append("g")
-                        .attr("class", "annotation-group")
-                        .call(makeAnnotations)
+                        .attr("id", "annotation-area")
+                        .on("measure.range", (event, d) => {
+                            xScaleOriginal.range([0, event.detail.width]);
+                            yScaleOriginal.range([event.detail.height, 0]);
+                        })
+                        .call(zoom);
 
                     sel
-                    .enter()
-                    .select("d3fc-canvas.plot-area")
-                    .on("measure.range", (event, d) => {
-                        xScaleOriginal.range([0, event.detail.width]);
-                        yScaleOriginal.range([event.detail.height, 0]);
-                    })
-                    .on("click", (event, d) => {
-                        const xy = d3.pointer(event);
-                        const x = xScale.invert(xy[0]);
-                        const y = yScale.invert(xy[1]);
-                        const radius = Math.abs(x - (x - 20));
-                        const closestDatum = quadtree.find(x, y, radius);
-                        
-                        // add annotation
-                        annotations.push(makeAnnotations("title", 100, 100))
-                        redraw();
-                    })
-                    .call(zoom)
+                        .enter()
+                        .select("d3fc-svg#annotation-area svg")
+                        .append("g")
+                        .attr("class", "annotation-tip");
+        
+                    const tipg = sel
+                        .select("g.annotation-tip");
+
+                    function tip(d) {
+                        const annot = d3Annotation.annotation()
+                            .type(d3Annotation.annotationCallout)
+                            .annotations(d);
+                        tipg.call(annot)
+                    }
+
+                    sel
+                        .select("d3fc-svg#annotation-area")
+                        .on("click", (event, d) => {
+                            if (!event.ctrlKey) {
+                                annotations = [];
+                                tipg.selectAll("g").remove()
+                            }
+
+                            const coord = d3.pointer(event);
+                            const x = xScale.invert(coord[0]);
+                            const y = yScale.invert(coord[1]);
+                            const radius = Math.abs(x - xScale.invert(coord[0] - 20));
+                            const c = quadtree.find(x, y, radius);
+
+                            if(c != null) {
+                                annotations.push(createAnnotationData("title", c[0], c[1]))
+                                tip(annotations);
+                            }
+                        });
                 });
 
             const redraw = () => {
                 d3.select("#chart")
-                    .datum({ data, annotations })
+                    .datum(data)
                     .call(chart);
             }
 
