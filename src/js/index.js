@@ -7,7 +7,7 @@ import * as d3Annotation from 'd3-svg-annotation'
 const app = function() {
     return {
         load: function() {
-            papa.parse("http://127.0.0.1:8000/weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/HTR_Low_tp9_zscored_selected_samples_and_features_all.csv", {
+            papa.parse("http://127.0.0.1:8000/weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/HTR_Low_tp9_zscored_selected_samples_and_features.csv", {
                 download: true,
                 header: true,
                 dynamicTyping: true,
@@ -107,6 +107,13 @@ const app = function() {
                             .type(d3Annotation.annotationCallout)
                             .annotations(d);
                         tipg.call(annot)
+
+                        tipg
+                            .select("g.annotation-note-content")
+                            .append("image")
+                            .attr("height", "50")
+                            .attr("width", "50")
+                            .attr("href", "http://127.0.0.1:8000/VIB/Vulcan/Slava_PBMC/images_subset/pbmc+PI_00000000-3.png")
                     }
 
                     sel
