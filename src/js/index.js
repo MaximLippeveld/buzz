@@ -2,7 +2,6 @@ import 'alpinejs';
 import * as d3 from 'd3';
 import papa from 'papaparse';
 import * as fc from 'd3fc'
-import * as d3Annotation from 'd3-svg-annotation'
 
 const app = function() {
     return {
@@ -32,7 +31,7 @@ const app = function() {
             var height = d3.select("body").node().getBoundingClientRect().height;
             canvas.width = width;
             canvas.height = height;
-            
+
             const xScale = d3.scaleLinear()
   					.domain([d3.min(data, d => d[0]), d3.max(data, d => d[0])])
   
@@ -42,14 +41,16 @@ const app = function() {
             const xScaleOriginal = xScale.copy();
             const yScaleOriginal = yScale.copy();
 
-            const zoom = d3
-                .zoom()
+            const zoom = d3.zoom()
                 .on("zoom", (event, d) => {
                     xScale.domain(event.transform.rescaleX(xScaleOriginal).domain());
                     yScale.domain(event.transform.rescaleY(yScaleOriginal).domain());
-                    d3.select("g.annotation-tip").selectAll("g").remove();
+
+                    d3
+                        .selectAll("p.annotation")
+                        .style("transform", "translate(" + event.transform.x + "px," + event.transform.y + "px) scale(" + event.transform.k + ")");
                     redraw();
-                });
+                })
 
             const quadtree = d3
                 .quadtree()
@@ -57,14 +58,16 @@ const app = function() {
                 .y(d => d[1])
                 .addAll(data);
                         
-            let annotations = []
-            const createAnnotationData = (title, x, y) => ({
-                note: {
-                    title
-                },
-                x: xScale(x), y: yScale(y),
-                dx: -20, dy: 20
-            });
+            function annotation(x, y) {
+                d3
+                    .select("d3fc-group.cartesian-chart")
+                    .append("p")
+                    .text("test")
+                    .classed("annotation absolute", true)
+                    .style("top", y + "px")
+                    .style("left", x + "px")
+                    .style("transform-origin", "0 0");
+            }
 
             const chart = fc
                 .chartCartesian(xScale, yScale)
@@ -84,44 +87,20 @@ const app = function() {
 
                     sel
                         .enter()
-                        .append('d3fc-svg')
-                        .attr("class", "plot-area")
-                        .attr("id", "annotation-area")
+                        .select('d3fc-canvas.plot-area')
                         .on("measure.range", (event, d) => {
                             xScaleOriginal.range([0, event.detail.width]);
                             yScaleOriginal.range([event.detail.height, 0]);
                         })
-                        .call(zoom);
-
-                    sel
-                        .enter()
-                        .select("d3fc-svg#annotation-area svg")
-                        .append("g")
-                        .attr("class", "annotation-tip");
+                        .call(zoom)
         
-                    const tipg = sel
-                        .select("g.annotation-tip");
-
-                    function tip(d) {
-                        const annot = d3Annotation.annotation()
-                            .type(d3Annotation.annotationCallout)
-                            .annotations(d);
-                        tipg.call(annot)
-
-                        tipg
-                            .select("g.annotation-note-content")
-                            .append("image")
-                            .attr("height", "50")
-                            .attr("width", "50")
-                            .attr("href", "http://127.0.0.1:8000/VIB/Vulcan/Slava_PBMC/images_subset/pbmc+PI_00000000-3.png")
-                    }
+                            // "http://127.0.0.1:8000/VIB/Vulcan/Slava_PBMC/images_subset/pbmc+PI_00000000-3.png"
 
                     sel
-                        .select("d3fc-svg#annotation-area")
+                        .select("d3fc-canvas.plot-area")
                         .on("click", (event, d) => {
                             if (!event.ctrlKey) {
-                                annotations = [];
-                                tipg.selectAll("g").remove()
+                                d3.select("div#chart").selectAll("p.annotation").remove()
                             }
 
                             const coord = d3.pointer(event);
@@ -131,8 +110,7 @@ const app = function() {
                             const c = quadtree.find(x, y, radius);
 
                             if(c != null) {
-                                annotations.push(createAnnotationData("title", c[0], c[1]))
-                                tip(annotations);
+                                annotation(coord[0], coord[1])
                             }
                         });
                 });
