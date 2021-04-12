@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import * as fc from 'd3fc'
+import * as feather from 'feather-icons';
 
 export const scatter = function(data) {
 
@@ -45,14 +46,54 @@ export const scatter = function(data) {
             .style("left", x + "px")
             .style("transform-origin", "0 0");
 
+        const img_section = container
+            .append("div")
+            .classed("flex flex-nowrap items-center", true)
+
         // container
         //     .append("p")
         //     .text(data.meta_label)
 
         d3.json("http://127.0.0.1:5000/image/" + data.meta_dir).then(function(response) {
-            container
-                .append("img")
-                .attr("src", response["data"][0])
+            img_section
+                .append("div")
+                .classed("cursor-pointer", true)
+                .on("click", function(event, d) {
+                    const leftMargin = Math.min(
+                        0,
+                        parseInt(img_container.style("margin-left"))+response.width
+                    )
+                    img_container
+                        .style("margin-left", leftMargin + 'px')
+                })
+                .html(feather.icons["chevron-left"].toSvg(), {'width': 10, 'height': 15})
+            
+            const img_container = img_section
+                .append("div")
+                .style("width", response.width + "px")
+                .style("height", response.height + "px")
+                .classed("overflow-hidden", true)
+                .append("div")
+                .classed("flex flex-nowrap flex-row", true)
+
+            img_section
+                .append("div")
+                .classed("cursor-pointer", true)
+                .on("click", function(event, d) {
+                    const leftMargin = Math.max(
+                        -response.width*(response.channels-1),
+                        parseInt(img_container.style("margin-left"))-response.width
+                    )
+                    img_container
+                        .style("margin-left", leftMargin + 'px')
+                })
+                .html(feather.icons["chevron-right"].toSvg())
+
+            img_container
+                .selectAll("img")
+                .data(response.data)
+                .join("img")
+                    .attr("src", (d, i) => d)
         });
     }
 

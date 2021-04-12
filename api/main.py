@@ -36,4 +36,4 @@ def load_image(path):
                 # Python 3, decode from bytes to string
                 image_data = image_data.decode()
             data_uri.append('data:image/jpg;base64,' + image_data)
-    return dict(data=data_uri)
+    return dict(data=data_uri, width=img.width, height=img.height, channels=len(data_uri))
