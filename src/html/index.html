@@ -11,8 +11,9 @@
 
     <link rel="stylesheet" href="/css/styles.css" />
 </head>
-<body x-data="app = app()" x-init="load()" class="w-full h-screen">
-    <div id="chart" class="w-full h-screen"></div>
+<body x-data="app = app()" x-init="load()" class="w-full h-screen flex flex-row">
+    <div id="chart" class="w-10/12 h-screen"></div>
+    <div id="controls" class="w-2/12 h-screen"></div>
     <script type="module" src="/bin/index.js"></script>
 </body>
 </html>
