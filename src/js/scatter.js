@@ -36,8 +36,7 @@ export const scatter = function(data) {
         .addAll(data);
                 
     function annotation(x, y, data) {
-        const src = "http://127.0.0.1:8000/VIB/Vulcan/Slava_PBMC/images_subset/pbmc+PI_00000000-3.png";
-        
+
         const container = d3
             .select("d3fc-group.cartesian-chart")
             .append("div")
@@ -46,13 +45,15 @@ export const scatter = function(data) {
             .style("left", x + "px")
             .style("transform-origin", "0 0");
 
-        container
-            .append("p")
-            .text(data.meta_label)
+        // container
+        //     .append("p")
+        //     .text(data.meta_label)
 
-        container
-            .append("img")
-            .attr("src", src)
+        d3.json("http://127.0.0.1:5000/image/" + data.meta_dir).then(function(response) {
+            container
+                .append("img")
+                .attr("src", response["data"][0])
+        });
     }
 
     function hashCode(s) {

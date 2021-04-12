@@ -8,7 +8,7 @@ const app = function() {
 
             const parse = this.parse;
 
-            papa.parse("http://127.0.0.1:8000/weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/HTR_Low_tp9_zscored_selected_samples_and_features_all.csv", {
+            papa.parse("http://127.0.0.1:8000/VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.csv", {
                 download: true,
                 header: true,
                 dynamicTyping: true,
