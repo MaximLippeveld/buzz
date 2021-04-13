@@ -1,9 +1,9 @@
 import * as d3 from 'd3';
 import * as fc from 'd3fc'
 import feather from 'feather-icons';
-import { hashCode, webglColor, search } from './util';
+import { hashCode, webglColor } from './util';
 
-export const scatter = function(data) {
+export const scatter = function(data, app) {
 
     const canvas = d3.select("#chart").node();
     var width = d3.select("body").node().getBoundingClientRect().width;
@@ -11,12 +11,6 @@ export const scatter = function(data) {
     canvas.width = width;
     canvas.height = height;
     
-    const quadtree = d3
-        .quadtree()
-        .x(d => d.dim_1)
-        .y(d => d.dim_2)
-        .addAll(data);
-
     const xScale = d3.scaleLinear()
             .domain([d3.min(data, d => d.dim_1), d3.max(data, d => d.dim_1)])
 
@@ -37,42 +31,12 @@ export const scatter = function(data) {
                 .requestRedraw();
         })
 
-    var brushDomains = []
     const brush = fc.brush()
         .on("brush end", function(event) {
-            brushDomains = [
+            app.brushDomains = [
                 [event.xDomain[0], event.yDomain[0]],
                 [event.xDomain[1], event.yDomain[1]]
             ]
-        })
-
-    var populations = [];
-    var currPopId = 1;
-    d3.select("body")
-        .on("keydown.endbrush", function(event) {
-            if (event.keyCode == 13) {
-                var found = search(currPopId, quadtree, brushDomains)
-
-                if (found > 0) {
-                    populations.push({
-                        "id": currPopId++,
-                        "size": found
-                    })
-                    d3.select('d3fc-group')
-                        .node()
-                        .requestRedraw();
-
-                    d3
-                        .select("#populations")
-                        .selectAll("div.population")
-                        .data(populations)
-                        .enter()
-                        .append("div")
-                        .classed("population", true)
-                        .append("p")
-                        .text(d => "Population " + d.id + " (size: " + d.size + ")")
-                }
-            }
         })
 
     function annotation(x, y, data) {
@@ -203,7 +167,7 @@ export const scatter = function(data) {
                     const x = xScale.invert(coord[0]);
                     const y = yScale.invert(coord[1]);
                     const radius = Math.abs(x - xScale.invert(coord[0] - 20));
-                    const c = quadtree.find(x, y, radius);
+                    const c = app.quadtree.find(x, y, radius);
 
                     // if a point is found, draw an annotation
                     if(c != null) {
