@@ -13,7 +13,12 @@
 </head>
 <body x-data="app = app()" x-init="load()" class="w-full h-screen flex flex-row">
     <div id="chart" class="w-10/12 h-screen"></div>
-    <div id="controls" class="w-2/12 h-screen"></div>
+    <div id="controls" class="w-2/12 h-screen">
+        <div id="toggles">
+            <div id="brush-toggle"><i class="icon" data-feather="toggle-left"></i><div>Brush</div></div>
+        </div>
+        <div id="populations"></div>
+    </div>
     <script type="module" src="/bin/index.js"></script>
 </body>
 </html>

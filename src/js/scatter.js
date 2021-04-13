@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import * as fc from 'd3fc'
 import feather from 'feather-icons';
+import { hashCode, webglColor, search } from './util';
 
 export const scatter = function(data) {
 
@@ -45,27 +46,32 @@ export const scatter = function(data) {
             ]
         })
 
-    function search([[x0, y0], [x3, y3]]) {
-        quadtree.visit((node, x1, y1, x2, y2) => {
-            if (!node.length) {
-                do {
-                    const d = node.data;
-                    const x = node.data.dim_1;
-                    const y = node.data.dim_2;
-                    d.scanned = true;
-                    d.selected = x >= x0 && x < x3 && y >= y0 && y < y3;
-                } while ((node = node.next));
-            }
-            return x1 >= x3 || y1 >= y3 || x2 < x0 || y2 < y0;
-        });
-    }
+    var populations = [];
+    var currPopId = 1;
     d3.select("body")
         .on("keydown.endbrush", function(event) {
             if (event.keyCode == 13) {
-                search(brushDomains)
-                d3.select('d3fc-group')
-                    .node()
-                    .requestRedraw();
+                var found = search(currPopId, quadtree, brushDomains)
+
+                if (found > 0) {
+                    populations.push({
+                        "id": currPopId++,
+                        "size": found
+                    })
+                    d3.select('d3fc-group')
+                        .node()
+                        .requestRedraw();
+
+                    d3
+                        .select("#populations")
+                        .selectAll("div.population")
+                        .data(populations)
+                        .enter()
+                        .append("div")
+                        .classed("population", true)
+                        .append("p")
+                        .text(d => "Population " + d.id + " (size: " + d.size + ")")
+                }
             }
         })
 
@@ -82,10 +88,6 @@ export const scatter = function(data) {
         const img_section = container
             .append("div")
             .classed("flex flex-nowrap items-center", true)
-
-        // container
-        //     .append("p")
-        //     .text(data.meta_label)
 
         d3.json("http://127.0.0.1:5000/image/" + data.meta_dir).then(function(response) {
             img_section
@@ -130,23 +132,9 @@ export const scatter = function(data) {
         });
     }
 
-    function hashCode(s) {
-        if (s == null) {
-            return 0
-        }
-        const code =  s.split("").reduce((a, b) => {
-            a = (a << 5) - a + b.charCodeAt(0);
-            return a & a;
-        }, 0);
-        return code
-    }
     const labelColorScale = d3.scaleOrdinal(d3.schemeCategory10);
-    function webglColor(color) {
-        const { r, g, b, opacity } = d3.color(color).rgb();
-        return [r / 255, g / 255, b / 255, opacity];
-    };
-    const labelFill = d => webglColor(labelColorScale(hashCode(d.meta_label) % 10));
-    const fillColor = fc.webglFillColor().value(labelFill).data(data);
+    const metalabelFill = d => webglColor(labelColorScale(hashCode(d.meta_label) % 10));
+    const selectedFill = d => webglColor(labelColorScale(d.selected));
 
     const chart = fc
         .chartCartesian(xScale, yScale)
@@ -156,18 +144,9 @@ export const scatter = function(data) {
                 .crossValue(d => d.dim_1)
                 .mainValue(d => d.dim_2)
                 .type(d3.symbolCircle)
-
-                // TODO: correctly display selection
-                .size(d => {
-                    if (d.selected) {
-                        return 20;
-                    } else if (d.scanned) {
-                        return 5;
-                    } else {
-                        return 1;
-                    }
-                })
-                .decorate(program => {
+                .size(1)
+                .decorate((program, data) => {
+                    const fillColor = fc.webglFillColor().value(selectedFill).data(data);
                     fillColor(program)
                 })
         )
@@ -190,9 +169,9 @@ export const scatter = function(data) {
 
                     // update toggle icon
                     if (brushArea.classed("hidden")) {
-                        d3.select("#controls #brush-toggle .icon").attr("data-feather", "toggle-left")
+                        d3.select("#toggles #brush-toggle .icon").attr("data-feather", "toggle-left")
                     } else {
-                        d3.select("#controls #brush-toggle .icon").attr("data-feather", "toggle-right")
+                        d3.select("#toggles #brush-toggle .icon").attr("data-feather", "toggle-right")
                     }
                     feather.replace()
             }
