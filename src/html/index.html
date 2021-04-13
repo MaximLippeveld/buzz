@@ -11,13 +11,22 @@
 
     <link rel="stylesheet" href="/css/styles.css" />
 </head>
-<body x-data="app = app()" x-init="load()" class="w-full h-screen flex flex-row">
-    <div id="chart" class="w-10/12 h-screen"></div>
-    <div id="controls" class="w-2/12 h-screen">
-        <div id="toggles">
-            <div id="brush-toggle"><i class="icon" data-feather="toggle-left"></i><div>Brush</div></div>
+<body x-data="app = app()" x-init="load()" class="w-full h-screen flex flex-row" x-on:keydown.enter="brushed()">
+    <div id="chart" class="w-9/12 h-screen"></div>
+    <div id="controls" class="w-3/12 h-screen p-4">
+        <div id="toggles" class="h-1/6 flex">
+            <button id="brush-toggle"><i class="icon" data-feather="toggle-left"></i><span>Brush</span></button>
+            <button id="annotations-close"><i class="icon" data-feather="x-square"></i><span>Close annotations</span></button>
         </div>
-        <div id="populations"></div>
+        <div id="populations" class="overflow-auto h-5/6">
+            <template x-for="pop in populations" :key="pop">
+                <div class="population flex flex-row items-center text-left mb-1">
+                    <input type="checkbox" class="populationChecker pl-1 flex-auto" checked>
+                    <p class="pl-1 flex-auto">Population <span x-text="pop.id"></span> - (size: <span x-text="pop.size"></span>)</p>
+                    <button x-on:click="removePopulation(pop.id)" class="flex-auto"><i data-feather="trash-2"></i></button>
+                </div>
+            </template>
+        </div>
     </div>
     <script type="module" src="/bin/index.js"></script>
 </body>
