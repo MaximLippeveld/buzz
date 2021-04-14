@@ -1,0 +1,56 @@
+<!doctype html>
+
+<html>
+<head>
+    <meta charset = "utf-8"/>
+
+    <title>Buzz</title>
+    <meta name="description" content=""/>
+    <meta name="author" content="Maxim Lippeveld"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body x-data="app = app()" x-init="load()" class="w-full h-screen flex flex-row" x-on:keydown.enter="brushed()">
+    <div class="w-full h-1/2 flex">
+        <div id="chart" class="w-9/12 h-full">
+            <template x-for="annot in annotations" :key="annot.id">
+                <div :id="'annotation-' + annot.id" class="annotation absolute  z-50 p-1 bg-gray-100 origin-top-left transform">
+                    <div class="flex flex-nowrap items-center">
+                        <div class="cursor-pointer" x-on:click="cycleChannel(annot.width, annot.channels, annot.id, $event)"><i
+                                data-feather="chevron-left"></i></div>
+                        <div :id="'wrap-' + annot.id" class="overflow-hidden">
+                            <div :id="'im-' + annot.id" class="flex flex-nowrap flex-row" style="margin-left: 0px;">
+                                <template x-for="image in annot.images" :key="image">
+                                    <img :src="image" />
+                                </template>
+                            </div>
+                        </div>
+                        <div class="cursor-pointer" x-on:click="cycleChannel(-annot.width, annot.channels, annot.id, $event)"><i
+                                data-feather="chevron-right"></i></div>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <div id="controls" class="w-3/12 h-full">
+            <div id="toggles" class="h-1/6 flex">
+                <button id="brush-toggle" class="pr-1"><i class="icon" data-feather="toggle-left"></i><span>Brush</span></button>
+                <button id="annotations-close" x-on:click="annotations = []"><i class="icon" data-feather="x-square"></i><span>Close annotations</span></button>
+            </div>
+            <div id="populations" class="overflow-auto h-5/6">
+                <template x-for="pop in populations" :key="pop">
+                    <div class="population flex flex-row items-center text-left mb-1">
+                        <input type="checkbox" class="populationChecker pl-1 flex-auto" checked>
+                        <p class="pl-1 flex-auto">Population <span x-text="pop.id"></span> - (size: <span x-text="pop.size"></span>)</p>
+                        <button x-on:click="removePopulation(pop.id)" class="flex-auto"><i data-feather="trash-2"></i></button>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+    <div class="h-1/2">
+
+    </div>
+    <script type="module" src="/bin/index.js"></script>
+</body>
+</html>

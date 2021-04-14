@@ -88,12 +88,19 @@ const app = function() {
                 })
             })
         },
-        cycleChannel: function(offset, channels, id) {
-            const el = document.getElementById("im-"+id);
-            const newMargin = parseInt(el.style.marginLeft) + offset;
-            const low = -Math.abs(offset)*(channels-1);
-            if ((low <= newMargin) && (newMargin <= 0)) {
-                el.style.marginLeft = newMargin + "px";
+        cycleChannel: function(offset, channels, id, event) {
+            function cycleOne(id) {
+                const el = document.getElementById("im-"+id);
+                const newMargin = parseInt(el.style.marginLeft) + offset;
+                const low = -Math.abs(offset)*(channels-1);
+                if ((low <= newMargin) && (newMargin <= 0)) {
+                    el.style.marginLeft = newMargin + "px";
+                }
+            }
+            if (event.shiftKey) {
+                _.each(this.annotations, value => cycleOne(value.id))
+            } else {
+                cycleOne(id)
             }
         }
     }
