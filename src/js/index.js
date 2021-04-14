@@ -13,6 +13,7 @@ const app = function() {
         currAnnotId: 1,
         populations: [],
         annotations: [],
+        colorScale: d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10)),
         load: function() {
             feather.replace()
 
@@ -41,21 +42,37 @@ const app = function() {
             var found = search(this.currPopId, this.quadtree, this.brushDomains)
 
             if (found > 0) {
-                this.populations.push({
-                    "id": this.currPopId++,
+                const pop = {
+                    "id": this.currPopId,
                     "size": found,
-                    "brushDomains": this.brushDomains
+                    "brushDomains": this.brushDomains,
+                    "active": true,
+                    "color": this.colorScale(this.currPopId)
+                };
+                this.populations.push(pop);
+                this.$nextTick(() => { 
+                    feather.replace()
+                    document.getElementById("population-"+pop.id).style.borderColor = pop.color 
                 })
-                this.$nextTick(() => feather.replace())
-                d3.select('d3fc-group')
-                    .node()
-                    .requestRedraw();
+                this.currPopId++;
+
+                this.populationChange()
             }
         },
         removePopulation: function(popId) {
             var idx = _.findIndex(this.populations, e => e.id == popId)
             search(0, this.quadtree, this.populations[idx].brushDomains)
             this.populations.splice(idx, 1)
+            this.populationChange()
+        },
+        activePopulations: function() {
+            return _.map(_.filter(this.populations, v => v.active), v => v.id)
+        },
+        activePopulationColors: function() {
+            return _.flatMap(_.filter(this.populations, v => v.active), v => v.color)
+        },
+        populationChange: function() {
+            histogram(this, "vega-hist")
             d3.select('d3fc-group')
                 .node()
                 .requestRedraw();
@@ -67,6 +84,18 @@ const app = function() {
             histogram(this, "vega-hist") 
         },
         annotation: function(x, y, data, app, hold) {
+            function post(annotations) {
+                feather.replace()
+                _.each(annotations, function(value) {
+                    const el = document.getElementById("annotation-" + value.id);
+                    el.style.top = value.pos.y + "px";
+                    el.style.left = value.pos.x + "px";
+                    const el2 = document.getElementById("wrap-" + value.id)
+                    el2.style.width = value.width + "px";
+                    el2.style.height = value.height + "px";
+                })
+            }
+
             d3.json("http://127.0.0.1:5000/image/" + data.meta_dir).then(function(response) {
                 if (!hold) app.annotations = []
 
@@ -78,22 +107,8 @@ const app = function() {
                     height: response.height,
                     channels: response.channels
                 })
-                app.postAnnotation();
+                app.$nextTick(() => post(app.annotations))
             });
-        },
-        postAnnotation: function() {
-            this.$nextTick(() => {
-                feather.replace()
-
-                _.each(this.annotations, function(value) {
-                    const el = document.getElementById("annotation-" + value.id);
-                    el.style.top = value.pos.y + "px";
-                    el.style.left = value.pos.x + "px";
-                    const el2 = document.getElementById("wrap-" + value.id)
-                    el2.style.width = value.width + "px";
-                    el2.style.height = value.height + "px";
-                })
-            })
         },
         cycleChannel: function(offset, channels, id, event) {
             function cycleOne(id) {
