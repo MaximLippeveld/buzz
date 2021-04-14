@@ -59,8 +59,10 @@ const app = function() {
                 .node()
                 .requestRedraw();
         },
-        annotation: function(x, y, data, app) {
+        annotation: function(x, y, data, app, hold) {
             d3.json("http://127.0.0.1:5000/image/" + data.meta_dir).then(function(response) {
+                if (!hold) app.annotations = []
+
                 app.annotations.push({
                     id: app.currAnnotId++, 
                     images: response.data,

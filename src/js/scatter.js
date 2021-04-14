@@ -99,12 +99,6 @@ export const scatter = function(data, app) {
             sel
                 .select("d3fc-canvas.webgl-plot-area")
                 .on("click", (event, d) => {
-
-                    // clicking without holding ctrl, removes all current annotations
-                    if (!event.ctrlKey) {
-                        d3.select("div#chart").selectAll("div.annotation").remove()
-                    }
-
                     // find closest point on the canvas
                     const coord = d3.pointer(event);
                     const x = xScale.invert(coord[0]);
@@ -114,7 +108,7 @@ export const scatter = function(data, app) {
 
                     // if a point is found, draw an annotation
                     if(c != null) {
-                        app.annotation(coord[0], coord[1], c, app)
+                        app.annotation(coord[0], coord[1], c, app, event.ctrlKey)
                     }
                 });
         });
