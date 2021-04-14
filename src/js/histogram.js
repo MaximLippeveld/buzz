@@ -3,8 +3,7 @@
 import * as d3 from 'd3';
 import embed from 'vega-embed'
 
-export const histogram = function(app, id) {
-    console.log(app.activePopulations())
+export const histogram = function(app, feature, id) {
     var spec = {
         $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
         data: { values: app.data },
@@ -14,8 +13,8 @@ export const histogram = function(app, id) {
         mark: 'bar',
         encoding: {
             x: {
-                bin: true,
-                field: "dim_1"
+                bin: {"maxbins": 50},
+                field: feature
             },
             y: {
                 aggregate: "count",
@@ -24,7 +23,8 @@ export const histogram = function(app, id) {
             color: {
                 field: "selected",
                 type: "nominal",
-                scale: {"range": app.activePopulationColors()}
+                scale: {"range": app.activePopulationColors()},
+                opacity: 0.7
             }
         }
       };
@@ -43,7 +43,7 @@ export const histogram_d3 = function(app) {
         .attr("width", width)
         .attr("height", height)
 
-    const feature = "dim_1"
+    const feature = "feat_eccentricity_0"
 
     const xScale = d3.scaleLinear()              
     	.domain([d3.min(data, function(d) { return d[feature] }), d3.max(data, function(d) { return d[feature] })])   

@@ -1,16 +1,61 @@
-from flask import Flask
+from flask import Flask, request
+from flask_caching import Cache
+from flask_cors import CORS
 from io import BytesIO
 from PIL import Image 
 import numpy
 import base64
+import pandas
+from scipy.spatial.distance import jensenshannon
+
+config = {
+    "CACHE_TYPE": "SimpleCache",
+    "CACHE_DEFAULT_TIMEOUT": numpy.iinfo(numpy.uint16).max
+}
 
 app = Flask(__name__)
+app.config.from_mapping(config)
+cache = Cache(app)
+CORS(app)
 
-@app.after_request
-def after_request(response):
-    header = response.headers
-    header['Access-Control-Allow-Origin'] = '*'
-    return response
+@app.route("/feather/<path:path>")
+def load_feather(path):
+    df = pandas.read_feather(path)
+    cache.set("data", df)
+    return dict(data=df.filter(regex="meta|dim").to_dict(orient="records"))
+
+@app.route("/features/list")
+def get_features():
+    return dict(data=cache.get("data").columns.tolist())
+
+@app.route("/features/get/<string:feature>")
+def get_feature(feature):
+    return dict(data=cache.get("data")[feature].tolist())
+
+@app.route("/features/js-divergence", methods=["POST"])
+def get_js_divergence_between_populations():
+    populations = request.json["populations"]
+    popids = [i for i in numpy.unique(populations) if i != 0]
+
+    def to_prob(vec1, vec2):
+        histP = numpy.histogram(vec1, bins=1000)
+        P = histP[0]/histP[0].sum()
+        histQ = numpy.histogram(vec2, bins=histP[1])
+        Q = histQ[0]/histQ[0].sum()
+        return P, Q 
+
+    df = cache.get("data")
+    feat_df = df.filter(regex="feat")
+    js = []
+    for col in feat_df:
+        vec1 = feat_df.iloc[populations==popids[0]][col].values 
+        vec2 = feat_df.iloc[populations==popids[1]][col].values 
+        P, Q = to_prob(vec1, vec2)
+        js.append(jensenshannon(P, Q))
+
+    sorted_idx = numpy.argsort(js)
+    return dict(data=feat_df.columns[sorted_idx[-20:]].tolist())
+
 
 @app.route("/image/<path:path>")
 def load_image(path):
