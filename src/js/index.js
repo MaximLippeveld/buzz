@@ -9,7 +9,9 @@ import * as _ from 'lodash';
 const app = function() {
     return {
         currPopId: 1,
+        currAnnotId: 1,
         populations: [],
+        annotations: [],
         load: function() {
             feather.replace()
 
@@ -56,6 +58,41 @@ const app = function() {
             d3.select('d3fc-group')
                 .node()
                 .requestRedraw();
+        },
+        annotation: function(x, y, data, app) {
+            d3.json("http://127.0.0.1:5000/image/" + data.meta_dir).then(function(response) {
+                app.annotations.push({
+                    id: app.currAnnotId++, 
+                    images: response.data,
+                    pos: {x: x, y: y},
+                    width: response.width,
+                    height: response.height,
+                    channels: response.channels
+                })
+                app.postAnnotation();
+            });
+        },
+        postAnnotation: function() {
+            this.$nextTick(() => {
+                feather.replace()
+
+                _.each(this.annotations, function(value) {
+                    const el = document.getElementById("annotation-" + value.id);
+                    el.style.top = value.pos.y + "px";
+                    el.style.left = value.pos.x + "px";
+                    const el2 = document.getElementById("wrap-" + value.id)
+                    el2.style.width = value.width + "px";
+                    el2.style.height = value.height + "px";
+                })
+            })
+        },
+        cycleChannel: function(offset, channels, id) {
+            const el = document.getElementById("im-"+id);
+            const newMargin = parseInt(el.style.marginLeft) + offset;
+            const low = -Math.abs(offset)*(channels-1);
+            if ((low <= newMargin) && (newMargin <= 0)) {
+                el.style.marginLeft = newMargin + "px";
+            }
         }
     }
 };

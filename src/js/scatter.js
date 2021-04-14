@@ -24,7 +24,7 @@ export const scatter = function(data, app) {
         .on("zoom", (event, d) => {
             xScale.domain(event.transform.rescaleX(xScaleOriginal).domain());
             yScale.domain(event.transform.rescaleY(yScaleOriginal).domain());
-            d3.selectAll("div.annotation").remove();
+            app.annotations = [];
             
             d3.select('d3fc-group')
                 .node()
@@ -38,63 +38,6 @@ export const scatter = function(data, app) {
                 [event.xDomain[1], event.yDomain[1]]
             ]
         })
-
-    function annotation(x, y, data) {
-
-        const container = d3
-            .select("d3fc-group.cartesian-chart")
-            .append("div")
-            .classed("annotation absolute p-1 bg-gray-100", true)
-            .style("top", y + "px")
-            .style("left", x + "px")
-            .style("transform-origin", "0 0");
-
-        const img_section = container
-            .append("div")
-            .classed("flex flex-nowrap items-center", true)
-
-        d3.json("http://127.0.0.1:5000/image/" + data.meta_dir).then(function(response) {
-            img_section
-                .append("div")
-                .classed("cursor-pointer", true)
-                .on("click", function(event, d) {
-                    const leftMargin = Math.min(
-                        0,
-                        parseInt(img_container.style("margin-left"))+response.width
-                    )
-                    img_container
-                        .style("margin-left", leftMargin + 'px')
-                })
-                .html(feather.icons["chevron-left"].toSvg())
-            
-            const img_container = img_section
-                .append("div")
-                .style("width", response.width + "px")
-                .style("height", response.height + "px")
-                .classed("overflow-hidden", true)
-                .append("div")
-                .classed("flex flex-nowrap flex-row", true)
-
-            img_section
-                .append("div")
-                .classed("cursor-pointer", true)
-                .on("click", function(event, d) {
-                    const leftMargin = Math.max(
-                        -response.width*(response.channels-1),
-                        parseInt(img_container.style("margin-left"))-response.width
-                    )
-                    img_container
-                        .style("margin-left", leftMargin + 'px')
-                })
-                .html(feather.icons["chevron-right"].toSvg())
-
-            img_container
-                .selectAll("img")
-                .data(response.data)
-                .join("img")
-                    .attr("src", (d, i) => d)
-        });
-    }
 
     const labelColorScale = d3.scaleOrdinal(d3.schemeCategory10);
     const metalabelFill = d => webglColor(labelColorScale(hashCode(d.meta_label) % 10));
@@ -171,7 +114,7 @@ export const scatter = function(data, app) {
 
                     // if a point is found, draw an annotation
                     if(c != null) {
-                        annotation(coord[0], coord[1], c)
+                        app.annotation(coord[0], coord[1], c, app)
                     }
                 });
         });
