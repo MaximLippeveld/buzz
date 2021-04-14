@@ -3,7 +3,8 @@ import * as fc from 'd3fc'
 import feather from 'feather-icons';
 import { hashCode, webglColor } from './util';
 
-export const scatter = function(data, app) {
+export const scatter = function(app) {
+    const data = app.data;
 
     const canvas = d3.select("#chart").node();
     var width = d3.select("body").node().getBoundingClientRect().width;

@@ -3,6 +3,7 @@ import papa from 'papaparse';
 import * as d3 from 'd3';
 import { scatter } from './scatter';
 import { search } from './util'
+import { histogram } from './histogram';
 import feather from 'feather-icons';
 import * as _ from 'lodash';
 
@@ -32,7 +33,7 @@ const app = function() {
                         .y(d => d.dim_2)
                         .addAll(parent.data);
 
-                    scatter(parent.data, parent);
+                    scatter(parent);
                 }
             })
         },
@@ -58,6 +59,12 @@ const app = function() {
             d3.select('d3fc-group')
                 .node()
                 .requestRedraw();
+        },
+        visualize: function() {
+            var histDiv = document.createElement("div")
+            histDiv.setAttribute("id", "vega-hist")
+            document.getElementById("visualizer").appendChild(histDiv)
+            histogram(this, "vega-hist") 
         },
         annotation: function(x, y, data, app, hold) {
             d3.json("http://127.0.0.1:5000/image/" + data.meta_dir).then(function(response) {
