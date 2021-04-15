@@ -60,8 +60,8 @@ def get_js_divergence_between_populations():
         P, Q = to_prob(vec1, vec2)
         js.append(jensenshannon(P, Q))
 
-    sorted_idx = numpy.argsort(js)
-    return dict(data=feat_df.columns[sorted_idx[-20:]].tolist())
+    sorted_idx = numpy.argsort(js)[::-1]
+    return dict(data=feat_df.columns[sorted_idx[:10]].tolist())
 
 
 @app.route("/image/<path:path>")

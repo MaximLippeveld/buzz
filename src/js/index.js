@@ -83,7 +83,7 @@ const app = function() {
                 })
                 this.currPopId++;
 
-                this.selectFeature(populationFeature, null)
+                this.reColor(populationFeature, null)
             }
         },
         removePopulation: function(popId) {
@@ -98,16 +98,19 @@ const app = function() {
         activePopulationColors: function() {
             return _.flatMap(_.filter(this.populations, v => v.active), v => v.color)
         },
-        reColor: function(type) {
-            const featureName = this.colorHue.name;
+        reColor: async function(feature, type) {
+            this.colorHue.selected = false;
+            feature.selected = true;
+            await this.loadFeature(feature)
+
             this.colorTransform = v => v
             switch(type) {
                 case "nominal":
-                    const uniques = new Set(_.flatMap(this.data, d=>d[featureName])).size
+                    const uniques = new Set(_.flatMap(this.data, d=>d[feature.name])).size
                     const scheme = uniques <= 10 ? d3.schemeCategory10 : d3.interpolateOrRd;
                     this.colorScale = d3.scaleSequential(scheme).domain(d3.range(uniques))
 
-                    const value = this.data[0][featureName]
+                    const value = this.data[0][feature.name]
                     if (typeof value === 'string' || value instanceof String) {
                         if (!isFinite(Number(value))) {
                             this.colorTransform = v => hashCode(v) % uniques
@@ -117,14 +120,17 @@ const app = function() {
                     } 
                     break;
                 case "continuous":
+                    const arr = _.flatMap(this.data, d => d[feature.name]);
                     this.colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([
-                        d3.min(this.data, d => d[featureName]),
-                        d3.max(this.data, d => d[featureName])
+                        d3.quantile(arr, 0.05),
+                        d3.quantile(arr, 0.95)
                     ])
                     break;
                 default:
                     this.colorScale = populationColorScale;
             }
+
+            this.colorHue = feature
             this.redraw();
         },
         redraw: function() {
@@ -132,10 +138,10 @@ const app = function() {
                 .node()
                 .requestRedraw();
         },
-        selectFeature: async function(feature, type) {
-            this.colorHue.selected = false;
-            
-            feature.selected = true;
+        showPopulation: function() {
+            this.reColor(populationFeature, null)
+        },
+        loadFeature: async function(feature) {
             if (!feature.loaded) {
                 const response = await d3.json("http://127.0.0.1:5000/features/get/"+feature.name)
                 this.data = _.map(this.data, function(value, index) {
@@ -144,9 +150,6 @@ const app = function() {
                 })
                 feature.loaded = true
             }
-
-            this.colorHue = feature
-            this.reColor(type)
         },
         jsDivergence: async function() {
             const response = await d3.json("http://127.0.0.1:5000/features/js-divergence", {
@@ -159,16 +162,24 @@ const app = function() {
                 }
             })
            
-            const app = this; 
-            _.each(response.data, function(value) {
-                var feature = _.find(app.features, v => v.name == value)
-                app.selectFeature(feature)
-            })
-
-            var histDiv = document.createElement("div")
-            histDiv.setAttribute("id", "vega-hist")
-            document.getElementById("visualizer").appendChild(histDiv)
-            histogram(this, response.data[0], "vega-hist") 
+            const app = this;
+            await Promise.all(response.data.map(async (value) => {
+                var feature = _.find(app.descriptors[0].list, v => v.name == value)
+                await app.loadFeature(feature)
+            }))
+            
+            d3
+                .select("#visualizer")
+                .selectAll(".vega-hist")
+                .data(response.data)
+                .join("div")
+                .attr("id", f => f)
+                .attr("class", "cursor-pointer")
+                .on("click", function(event, f) {
+                    var feature = _.find(app.descriptors[0].list, v => v.name == f)
+                    app.reColor(feature, "continuous")
+                })
+                .each(f => histogram(app, f, f))
         },
         selectedFeatures: function() {
             return _.map(_.filter(this.features, v => v.selected), v => v.name)

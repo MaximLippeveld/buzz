@@ -5,10 +5,10 @@
   "main": "./src/js/index.js",
   "scripts": {
     "start": "npm run dev",
-    "build": "npm run build:clean && npm run build:sass && npm run build:postcss && npm run build:cleancss && nrpm run build:snowpack",
+    "build:tailwind": "npm run build:clean && npm run build:sass && npm run build:postcss && npm run build:cleancss",
     "build:snowpack": "snowpack build",
     "build:clean": "rimraf dist/css",
-    "build:sass": "node-sass --output-style compressed src/styles.scss dist/css/styles.css",
+    "build:sass": "node-sass --output-style compressed src/css/styles.scss dist/css/styles.css",
     "build:postcss": "cross-env NODE_ENV=production postcss --config . --map false --output dist/css/styles.css dist/css/styles.css",
     "build:cleancss": "cleancss -o dist/css/styles.css dist/css/styles.css",
     "dev:html": "watch \"npm run dev:sass && cp src/html/index.html dist/ \" ./src/html",
