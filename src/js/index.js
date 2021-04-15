@@ -1,12 +1,15 @@
 import 'alpinejs';
 import * as d3 from 'd3';
 import { scatter } from './scatter';
-import { search } from './util'
+import { hashCode, search } from './util'
 import { histogram } from './histogram';
 import feather from 'feather-icons';
 import * as _ from 'lodash';
 
 window._ = _
+
+const populationFeature = {"name": "selected", "selected": true, "loaded": true};
+const populationColorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10));
 
 const app = function() {
     return {
@@ -14,8 +17,10 @@ const app = function() {
         currAnnotId: 1,
         populations: [],
         annotations: [],
-        features: [],
-        colorScale: d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10)),
+        descriptors: [],
+        colorScale: populationColorScale,
+        colorHue: populationFeature,
+        colorTransform: v => v,
         load: function() {
             feather.replace()
 
@@ -34,12 +39,27 @@ const app = function() {
                 scatter(parent);
             
                 d3.json("http://127.0.0.1:5000/features/list").then(function(response) {
-                    parent.features = _.map(response.data, function(value) {
-                        return {
-                            "name": value,
-                            "selected": false,
-                            "loaded": false
-                        }
+                    parent.descriptors.push({
+                        "name": "features", 
+                        "type": "continuous", 
+                        "list": _.map(response.features, function(value) {
+                            return {
+                                "name": value,
+                                "selected": false,
+                                "loaded": false
+                            }
+                        })
+                    })
+                    parent.descriptors.push({
+                        "name": "meta",
+                        "type": "nominal", 
+                        "list": _.map(response.meta, function(value) {
+                            return {
+                                "name": value,
+                                "selected": false,
+                                "loaded": false
+                            }
+                        })
                     })
                 })
             })
@@ -54,7 +74,7 @@ const app = function() {
                     "size": found,
                     "brushDomains": this.brushDomains,
                     "active": false,
-                    "color": this.colorScale(this.currPopId)
+                    "color": populationColorScale(this.currPopId)
                 };
                 this.populations.push(pop);
                 this.$nextTick(() => { 
@@ -63,14 +83,14 @@ const app = function() {
                 })
                 this.currPopId++;
 
-                this.populationChange()
+                this.selectFeature(populationFeature, null)
             }
         },
         removePopulation: function(popId) {
             var idx = _.findIndex(this.populations, e => e.id == popId)
             search(0, this.quadtree, this.populations[idx].brushDomains)
             this.populations.splice(idx, 1)
-            this.populationChange()
+            this.redraw()
         },
         activePopulations: function() {
             return _.map(_.filter(this.populations, v => v.active), v => v.id)
@@ -78,13 +98,44 @@ const app = function() {
         activePopulationColors: function() {
             return _.flatMap(_.filter(this.populations, v => v.active), v => v.color)
         },
-        populationChange: function() {
+        reColor: function(type) {
+            const featureName = this.colorHue.name;
+            this.colorTransform = v => v
+            switch(type) {
+                case "nominal":
+                    const uniques = new Set(_.flatMap(this.data, d=>d[featureName])).size
+                    const scheme = uniques <= 10 ? d3.schemeCategory10 : d3.interpolateOrRd;
+                    this.colorScale = d3.scaleSequential(scheme).domain(d3.range(uniques))
+
+                    const value = this.data[0][featureName]
+                    if (typeof value === 'string' || value instanceof String) {
+                        if (!isFinite(Number(value))) {
+                            this.colorTransform = v => hashCode(v) % uniques
+                        } else {
+                            this.colorTransform = v => Number(v) % uniques
+                        }
+                    } 
+                    break;
+                case "continuous":
+                    this.colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([
+                        d3.min(this.data, d => d[featureName]),
+                        d3.max(this.data, d => d[featureName])
+                    ])
+                    break;
+                default:
+                    this.colorScale = populationColorScale;
+            }
+            this.redraw();
+        },
+        redraw: function() {
             d3.select('d3fc-group')
                 .node()
                 .requestRedraw();
         },
-        selectFeature: async function(feature) {
-            feature.selected = !feature.selected;
+        selectFeature: async function(feature, type) {
+            this.colorHue.selected = false;
+            
+            feature.selected = true;
             if (!feature.loaded) {
                 const response = await d3.json("http://127.0.0.1:5000/features/get/"+feature.name)
                 this.data = _.map(this.data, function(value, index) {
@@ -93,6 +144,9 @@ const app = function() {
                 })
                 feature.loaded = true
             }
+
+            this.colorHue = feature
+            this.reColor(type)
         },
         jsDivergence: async function() {
             const response = await d3.json("http://127.0.0.1:5000/features/js-divergence", {

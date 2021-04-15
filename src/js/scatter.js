@@ -40,9 +40,7 @@ export const scatter = function(app) {
             ]
         })
 
-    const labelColorScale = d3.scaleOrdinal(d3.schemeCategory10);
-    const metalabelFill = d => webglColor(labelColorScale(hashCode(d.meta_label) % 10));
-    const selectedFill = d => webglColor(labelColorScale(d.selected));
+    const selectedFill = d => webglColor(app.colorScale(app.colorTransform(d[app.colorHue.name])));
 
     const chart = fc
         .chartCartesian(xScale, yScale)

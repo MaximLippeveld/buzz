@@ -18,15 +18,22 @@ app.config.from_mapping(config)
 cache = Cache(app)
 CORS(app)
 
+path = "VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather"
+df = pandas.read_feather(path)
+cache.set("data", df) 
+
 @app.route("/feather/<path:path>")
 def load_feather(path):
-    df = pandas.read_feather(path)
-    cache.set("data", df)
+    df = cache.get("data")
     return dict(data=df.filter(regex="meta|dim").to_dict(orient="records"))
 
 @app.route("/features/list")
 def get_features():
-    return dict(data=cache.get("data").columns.tolist())
+    df = cache.get("data")
+    return dict(
+        features=df.filter(regex="feat").columns.tolist(),
+        meta=df.filter(regex="meta").columns.tolist(),
+    )
 
 @app.route("/features/get/<string:feature>")
 def get_feature(feature):
