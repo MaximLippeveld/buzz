@@ -1,7 +1,6 @@
 import * as d3 from 'd3';
 import * as fc from 'd3fc'
-import feather from 'feather-icons';
-import { hashCode, webglColor } from './util';
+import { webglColor } from './util';
 
 export const scatter = function(app) {
     const data = app.data;
@@ -81,17 +80,10 @@ export const scatter = function(app) {
             // pressing 'b' unhides the brush SVG, disabling exploration
             function toggleBrush() {
                     brushArea.classed("hidden", !brushArea.classed("hidden"))
+                    app.brushEnabled = !app.brushEnabled
                     d3.select('d3fc-group')
                         .node()
                         .requestRedraw();
-
-                    // update toggle icon
-                    if (brushArea.classed("hidden")) {
-                        d3.select("#toggles #brush-toggle .icon").attr("data-feather", "toggle-left")
-                    } else {
-                        d3.select("#toggles #brush-toggle .icon").attr("data-feather", "toggle-right")
-                    }
-                    feather.replace()
             }
             d3.select("body").on("keydown.enablebrush", event => { if (event.key == "b") toggleBrush() })
             d3.select("#brush-toggle").on("click", toggleBrush)

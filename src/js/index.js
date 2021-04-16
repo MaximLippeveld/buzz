@@ -21,6 +21,7 @@ const app = function() {
         colorScale: populationColorScale,
         colorHue: populationFeature,
         colorTransform: v => v,
+        brushEnabled: false,
         load: function() {
             feather.replace()
 
