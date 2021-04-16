@@ -70,6 +70,15 @@ export const scatter = function(app) {
         .svgPlotArea(brush)
         .decorate(sel => {
 
+            sel
+                .enter()
+                .select('d3fc-svg.x-axis')
+                .classed("invisible", true)
+            sel
+                .enter()
+                .select('d3fc-svg.y-axis')
+                .classed("invisible", true)
+
             // the brush SVG is hidden initially so that exploration is possible
             const brushArea = sel
                 .enter()

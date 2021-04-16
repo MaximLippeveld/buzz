@@ -18,10 +18,12 @@ const app = function() {
         populations: [],
         annotations: [],
         descriptors: [],
+        brushEnabled: false,
         colorScale: populationColorScale,
         colorHue: populationFeature,
         colorTransform: v => v,
         brushEnabled: false,
+        jsDivergenceError: false,
         load: function() {
             feather.replace()
 
@@ -153,10 +155,17 @@ const app = function() {
             }
         },
         jsDivergence: async function() {
+            const ids = this.activePopulations()
+            if (ids.length != 2) {
+                this.jsDivergenceError = true;
+                setTimeout(() => this.jsDivergenceError = false, 1000)
+                return 
+            }
+
             const response = await d3.json("http://127.0.0.1:5000/features/js-divergence", {
                 method:"POST",
                 body: JSON.stringify({
-                    populations: _.flatMap(this.data, v => v.selected)
+                    populations: _.flatMap(this.data, v => ids.includes(v.selected) ? v.selected: 0)
                 }),
                 headers: {
                     "Content-type": "application/json; charset=UTF-8"
@@ -170,27 +179,29 @@ const app = function() {
             }))
 
             histogram(app, response.data, 'visualizer')
-            
-            // d3
-            //     .select("#visualizer")
-            //     .selectAll(".vega-hist")
-            //     .data(response.data)
-            //     .join("div")
-            //     .attr("id", f => f)
-            //     .attr("class", "cursor-pointer")
-            //     .on("click", function(event, f) {
-            //         var feature = _.find(app.descriptors[0].list, v => v.name == f)
-            //         app.reColor(feature, "continuous")
-            //     })
-            //     .each(f => histogram(app, f, f))
         },
         selectedFeatures: function() {
             return _.map(_.filter(this.features, v => v.selected), v => v.name)
         },
+        cycleChannel: function(offset, channels, id, event) {
+            function cycleOne(id) {
+                const el = document.getElementById("im-"+id);
+                const newMargin = parseInt(el.style.marginLeft) + offset;
+                const low = -Math.abs(offset)*(channels-1);
+                if ((low <= newMargin) && (newMargin <= 0)) {
+                    el.style.marginLeft = newMargin + "px";
+                }
+            }
+            if (event.shiftKey) {
+                _.each(this.annotations, value => cycleOne(value.id))
+            } else {
+                cycleOne(id)
+            }
+        },
         annotation: function(x, y, data, app, hold) {
-            function post(annotations) {
+            function post() {
                 feather.replace()
-                _.each(annotations, function(value) {
+                _.each(app.annotations, function(value) {
                     const el = document.getElementById("annotation-" + value.id);
                     el.style.top = value.pos.y + "px";
                     el.style.left = value.pos.x + "px";
@@ -211,23 +222,8 @@ const app = function() {
                     height: response.height,
                     channels: response.channels
                 })
-                app.$nextTick(() => post(app.annotations))
+                app.$nextTick(() => post())
             });
-        },
-        cycleChannel: function(offset, channels, id, event) {
-            function cycleOne(id) {
-                const el = document.getElementById("im-"+id);
-                const newMargin = parseInt(el.style.marginLeft) + offset;
-                const low = -Math.abs(offset)*(channels-1);
-                if ((low <= newMargin) && (newMargin <= 0)) {
-                    el.style.marginLeft = newMargin + "px";
-                }
-            }
-            if (event.shiftKey) {
-                _.each(this.annotations, value => cycleOne(value.id))
-            } else {
-                cycleOne(id)
-            }
         }
     }
 };

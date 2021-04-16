@@ -7,6 +7,9 @@ import numpy
 import base64
 import pandas
 from scipy.spatial.distance import jensenshannon
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 config = {
     "CACHE_TYPE": "SimpleCache",
@@ -19,6 +22,7 @@ cache = Cache(app)
 CORS(app)
 
 path = "VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather"
+# path = "weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/c8ba196c-0b22-4489-9f9c-1242f68dd7a5.feather"
 df = pandas.read_feather(path)
 cache.set("data", df) 
 
