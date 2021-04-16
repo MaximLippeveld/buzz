@@ -3,33 +3,45 @@
 import * as d3 from 'd3';
 import embed from 'vega-embed'
 
-export const histogram = function(app, feature, id) {
+export const histogram = function(app, features, id) {
     var spec = {
         $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
         data: { values: app.data },
         transform: [
             {"filter": {"field": "selected", "oneOf": app.activePopulations()}}
         ],
-        mark: 'bar',
-        encoding: {
-            x: {
-                bin: {"maxbins": 50},
-                field: feature
-            },
-            y: {
-                aggregate: "count",
-                stack: null
-            },
-            color: {
-                field: "selected",
-                type: "nominal",
-                scale: {"range": app.activePopulationColors()},
-                opacity: 0.7
+        repeat: features,
+        config: {
+            legend: {disable: true}
+        },
+        spec: {
+            mark: 'bar',
+            encoding: {
+                x: {
+                    bin: {"maxbins": 50},
+                    field: {repeat: "repeat"}
+                },
+                y: {
+                    aggregate: "count",
+                    stack: null
+                },
+                color: {
+                    field: "selected",
+                    type: "nominal",
+                    scale: {"range": app.activePopulationColors()},
+                    opacity: 0.7
+                }
             }
         }
       };
 
-    embed('#'+id, spec)
+    embed('#'+id, spec, {actions: false}).then((result) => {
+        result.view.addEventListener('click', function(event, item) {
+            var f = item.mark.name.replace("child__", "").replace("_group", "")
+            var feature = _.find(app.descriptors[0].list, v => v.name == f)
+            app.reColor(feature, "continuous")
+        });
+    })
 }
 
 export const histogram_d3 = function(app) {

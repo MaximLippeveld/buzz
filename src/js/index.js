@@ -167,19 +167,21 @@ const app = function() {
                 var feature = _.find(app.descriptors[0].list, v => v.name == value)
                 await app.loadFeature(feature)
             }))
+
+            histogram(app, response.data, 'visualizer')
             
-            d3
-                .select("#visualizer")
-                .selectAll(".vega-hist")
-                .data(response.data)
-                .join("div")
-                .attr("id", f => f)
-                .attr("class", "cursor-pointer")
-                .on("click", function(event, f) {
-                    var feature = _.find(app.descriptors[0].list, v => v.name == f)
-                    app.reColor(feature, "continuous")
-                })
-                .each(f => histogram(app, f, f))
+            // d3
+            //     .select("#visualizer")
+            //     .selectAll(".vega-hist")
+            //     .data(response.data)
+            //     .join("div")
+            //     .attr("id", f => f)
+            //     .attr("class", "cursor-pointer")
+            //     .on("click", function(event, f) {
+            //         var feature = _.find(app.descriptors[0].list, v => v.name == f)
+            //         app.reColor(feature, "continuous")
+            //     })
+            //     .each(f => histogram(app, f, f))
         },
         selectedFeatures: function() {
             return _.map(_.filter(this.features, v => v.selected), v => v.name)

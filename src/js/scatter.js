@@ -21,10 +21,12 @@ export const scatter = function(app) {
     const xScaleOriginal = xScale.copy();
     const yScaleOriginal = yScale.copy();
 
+    var dotSize = 1;
     const zoom = d3.zoom()
         .on("zoom", (event, d) => {
             xScale.domain(event.transform.rescaleX(xScaleOriginal).domain());
             yScale.domain(event.transform.rescaleY(yScaleOriginal).domain());
+
             app.annotations = [];
             
             d3.select('d3fc-group')
@@ -50,10 +52,20 @@ export const scatter = function(app) {
                 .crossValue(d => d.dim_1)
                 .mainValue(d => d.dim_2)
                 .type(d3.symbolCircle)
-                .size(1)
+                .size(dotSize)
                 .decorate((program, data) => {
                     const fillColor = fc.webglFillColor().value(selectedFill).data(data);
-                    fillColor(program)
+                    fillColor(program);
+                    // fc.pointAntiAlias()(program);
+
+                    const gl = program.context();
+                    gl.enable(gl.BLEND);
+                    gl.blendFuncSeparate(
+                        gl.SRC_ALPHA,
+                        gl.ONE_MINUS_DST_ALPHA,
+                        gl.ONE,
+                        gl.ONE_MINUS_SRC_ALPHA
+                    );
                 })
         )
         .svgPlotArea(brush)
