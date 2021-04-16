@@ -51,7 +51,7 @@
             <template x-for="(pop, index, collection) in populations" :key="pop.id">
                 <div 
                     class="population cursor-pointer flex flex-row items-center text-left mb-1 border-l-4" :id="'population-' + pop.id"
-                    :class="{'font-bold': pop.active}" @click="pop.active=!pop.active; redraw()">
+                    :class="{'font-bold': pop.active}" @click="pop.active=!pop.active">
                     <p class="pl-1 flex-auto">Population <span x-text="pop.id"></span> - (size: <span x-text="pop.size"></span>)</p>
                     <button x-on:click="removePopulation(pop.id)" class="flex-auto"><i data-feather="trash-2"></i></button>
                 </div>
