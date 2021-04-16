@@ -35,15 +35,19 @@
         <div class="h-2/6 overflow-auto w-full flex flex-row" id="visualizer"></div>
     </div>
     <div id="controls" class="w-3/12 h-full flex flex-col">
-        <div id="toggles" class="h-2/6 py-2 flex">
-            <div class="flex-grow-0 flex flex-col">
-                <button id="brush-toggle" class="py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center mb-2"><i class="" data-feather="toggle-left"></i><span class="pl-2">Enable brush</span></button>
-                <button class="py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center mb-2" @click="annotations = []"><i class="" data-feather="x-square"></i><span class="pl-2">Close annotations</span></button>
-                <button class="py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center mb-2" @click="jsDivergence()"><i class="" data-feather="cpu"></i><span class="pl-2">JS divergence</span></button>
-                <button class="py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center mb-2" @click="showPopulation()"><i class="" data-feather="aperture"></i><span class="pl-2">Show populations</span></button>
+        <div class="h-1/6">
+            <div id="toggles" class="h-2/6 py-2 flex flex-row flex-wrap items-start">
+                <div class="w-1/2 pr-2 pb-2"><button class="w-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" id="brush-toggle">
+                    <i x-show="!brushEnabled" class="" data-feather="toggle-left"></i>
+                    <i x-show="brushEnabled" class="" data-feather="toggle-right"></i>
+                    <span class="pl-2">Enable brush</span>
+                </button></div>
+                <div class="w-1/2 pr-2 pb-2"><button class="w-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="annotations = []"><i class="" data-feather="x-square"></i><span class="pl-2">Close annotations</span></button></div>
+                <div class="w-1/2 pr-2 pb-2"><button :class="{'bg-red-300': jsDivergenceError }" class="w-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="jsDivergence()"><i class="" data-feather="cpu"></i><span class="pl-2">JS divergence</span></button></div>
+                <div class="w-1/2 pr-2 pb-2"><button class="w-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="showPopulation()"><i class="" data-feather="aperture"></i><span class="pl-2">Show populations</span></button></div>
             </div>
         </div>
-        <div id="populations" class="h-1/6 overflow-auto">
+        <div id="populations" class="h-2/6 overflow-auto">
             <template x-for="(pop, index, collection) in populations" :key="pop.id">
                 <div 
                     class="population cursor-pointer flex flex-row items-center text-left mb-1 border-l-4" :id="'population-' + pop.id"
