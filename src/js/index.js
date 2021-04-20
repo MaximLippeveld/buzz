@@ -1,7 +1,8 @@
 import 'alpinejs';
 import * as d3 from 'd3';
 import { scatter } from './scatter';
-import { hashCode, search } from './util'
+import { hashCode, search, webglColor } from './util'
+import * as fc from 'd3fc'
 import { histogram } from './histogram';
 import feather from 'feather-icons';
 import * as _ from 'lodash';
@@ -19,12 +20,16 @@ const app = function() {
         annotations: [],
         descriptors: [],
         brushEnabled: false,
+        jsDivergenceError: false,
+        deleteAllowed: true,
         colorScale: populationColorScale,
         colorHue: populationFeature,
         colorTransform: v => v,
-        brushEnabled: false,
-        jsDivergenceError: false,
-        deleteAllowed: true,
+        fillColor: null,
+        updateFillColor: async function() {
+            const selectedFill = d => webglColor(this.colorScale(this.colorTransform(d[this.colorHue.name])), 0.9)
+            this.fillColor = fc.webglFillColor().value(selectedFill).data(this.data);
+        },
         load: function() {
             feather.replace()
 
@@ -40,6 +45,7 @@ const app = function() {
                     .y(d => d.dim_2)
                     .addAll(parent.data);
 
+                parent.updateFillColor();
                 scatter(parent);
             
                 d3.json("http://127.0.0.1:5000/features/list").then(function(response) {
@@ -70,31 +76,31 @@ const app = function() {
 
         },
         brushed: function() {
-            var found = search(this.currPopId, this.quadtree, this.brushDomains)
-
-            if (found > 0) {
-                const pop = {
-                    "id": this.currPopId,
-                    "size": found,
-                    "brushDomains": this.brushDomains,
-                    "active": false,
-                    "color": populationColorScale(this.currPopId)
-                };
-                this.populations.push(pop);
-                this.$nextTick(() => { 
-                    feather.replace()
-                    document.getElementById("population-"+pop.id).style.borderColor = pop.color 
-                })
-                this.currPopId++;
-
-                this.reColor(populationFeature, null)
-            }
+            const app = this;
+            search(this.currPopId, this.quadtree, this.brushDomains).then((found) => {
+                if (found > 0) {
+                    const pop = {
+                        "id": app.currPopId,
+                        "size": found,
+                        "brushDomains": app.brushDomains,
+                        "active": false,
+                        "color": populationColorScale(app.currPopId)
+                    };
+                    app.populations.push(pop);
+                    app.$nextTick(() => { 
+                        feather.replace()
+                        document.getElementById("population-"+pop.id).style.borderColor = pop.color 
+                    })
+                    app.currPopId++;
+                    app.reColor(populationFeature, null)
+                }
+            })
         },
         removePopulation: function(popId) {
             var idx = _.findIndex(this.populations, e => e.id == popId)
             search(0, this.quadtree, this.populations[idx].brushDomains)
             this.populations.splice(idx, 1)
-            this.redraw()
+            this.reColor(populationFeature, null)
         },
         activePopulations: function() {
             return _.map(_.filter(this.populations, v => v.active), v => v.id)
@@ -102,7 +108,7 @@ const app = function() {
         activePopulationColors: function() {
             return _.flatMap(_.filter(this.populations, v => v.active), v => v.color)
         },
-        reColor: async function(feature, type) {
+        reColor: function(feature, type) {
             this.colorHue.selected = false;
             feature.selected = true;
 
@@ -136,7 +142,7 @@ const app = function() {
                 }
 
                 app.colorHue = feature
-                app.redraw();
+                app.updateFillColor().then(() => app.redraw());
             })
         },
         redraw: async function() {

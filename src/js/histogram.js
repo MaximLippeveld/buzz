@@ -39,6 +39,8 @@ export const histogram = function(app, activePopulations, activePopulationColors
         result.view.addEventListener('click', function(event, item) {
             var f = item.mark.name.replace("child__", "").replace("_group", "")
             var feature = _.find(app.descriptors[0].list, v => v.name == f)
+            console.log(f)
+            console.log(feature)
             app.reColor(feature, "continuous")
         });
     })

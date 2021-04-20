@@ -1,6 +1,5 @@
 import * as d3 from 'd3';
 import * as fc from 'd3fc'
-import { webglColor } from './util';
 
 export const scatter = async function(app) {
     const data = app.data;
@@ -41,8 +40,6 @@ export const scatter = async function(app) {
             ]
         })
 
-    const selectedFill = d => webglColor(app.colorScale(app.colorTransform(d[app.colorHue.name])));
-
     const chart = fc
         .chartCartesian(xScale, yScale)
         .webglPlotArea(
@@ -52,10 +49,8 @@ export const scatter = async function(app) {
                 .mainValue(d => d.dim_2)
                 .type(d3.symbolCircle)
                 .size(dotSize)
-                .decorate((program, data) => {
-                    const fillColor = fc.webglFillColor().value(selectedFill).data(data);
-                    fillColor(program);
-                    // fc.pointAntiAlias()(program);
+                .decorate((program) => {
+                    app.fillColor(program);
 
                     const gl = program.context();
                     gl.enable(gl.BLEND);
