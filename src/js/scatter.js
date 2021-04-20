@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import * as fc from 'd3fc'
 import { webglColor } from './util';
 
-export const scatter = function(app) {
+export const scatter = async function(app) {
     const data = app.data;
 
     const canvas = d3.select("#chart").node();

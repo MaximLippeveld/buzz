@@ -24,6 +24,7 @@ const app = function() {
         colorTransform: v => v,
         brushEnabled: false,
         jsDivergenceError: false,
+        deleteAllowed: true,
         load: function() {
             feather.replace()
 
@@ -104,39 +105,41 @@ const app = function() {
         reColor: async function(feature, type) {
             this.colorHue.selected = false;
             feature.selected = true;
-            await this.loadFeature(feature)
 
-            this.colorTransform = v => v
-            switch(type) {
-                case "nominal":
-                    const uniques = new Set(_.flatMap(this.data, d=>d[feature.name])).size
-                    const scheme = uniques <= 10 ? d3.schemeCategory10 : d3.interpolateOrRd;
-                    this.colorScale = d3.scaleSequential(scheme).domain(d3.range(uniques))
+            const app = this;
+            this.loadFeature(feature).then(() => {
+                app.colorTransform = v => v
+                switch(type) {
+                    case "nominal":
+                        const uniques = new Set(_.flatMap(app.data, d=>d[feature.name])).size
+                        const scheme = uniques <= 10 ? d3.schemeCategory10 : d3.interpolateOrRd;
+                        app.colorScale = d3.scaleSequential(scheme).domain(d3.range(uniques))
 
-                    const value = this.data[0][feature.name]
-                    if (typeof value === 'string' || value instanceof String) {
-                        if (!isFinite(Number(value))) {
-                            this.colorTransform = v => hashCode(v) % uniques
-                        } else {
-                            this.colorTransform = v => Number(v) % uniques
-                        }
-                    } 
-                    break;
-                case "continuous":
-                    const arr = _.flatMap(this.data, d => d[feature.name]);
-                    this.colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([
-                        d3.quantile(arr, 0.05),
-                        d3.quantile(arr, 0.95)
-                    ])
-                    break;
-                default:
-                    this.colorScale = populationColorScale;
-            }
+                        const value = app.data[0][feature.name]
+                        if (typeof value === 'string' || value instanceof String) {
+                            if (!isFinite(Number(value))) {
+                                app.colorTransform = v => hashCode(v) % uniques
+                            } else {
+                                app.colorTransform = v => Number(v) % uniques
+                            }
+                        } 
+                        break;
+                    case "continuous":
+                        const arr = _.flatMap(app.data, d => d[feature.name]);
+                        app.colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([
+                            d3.quantile(arr, 0.05),
+                            d3.quantile(arr, 0.95)
+                        ])
+                        break;
+                    default:
+                        app.colorScale = populationColorScale;
+                }
 
-            this.colorHue = feature
-            this.redraw();
+                app.colorHue = feature
+                app.redraw();
+            })
         },
-        redraw: function() {
+        redraw: async function() {
             d3.select('d3fc-group')
                 .node()
                 .requestRedraw();
@@ -155,14 +158,18 @@ const app = function() {
             }
         },
         jsDivergence: async function() {
-            const ids = this.activePopulations()
+            this.deleteAllowed = false;
+
+            const ids = this.activePopulations();
             if (ids.length != 2) {
                 this.jsDivergenceError = true;
                 setTimeout(() => this.jsDivergenceError = false, 1000)
                 return 
             }
+            const colors = this.activePopulationColors();
 
-            const response = await d3.json("http://127.0.0.1:5000/features/js-divergence", {
+            const app = this;
+            d3.json("http://127.0.0.1:5000/features/js-divergence", {
                 method:"POST",
                 body: JSON.stringify({
                     populations: _.flatMap(this.data, v => ids.includes(v.selected) ? v.selected: 0)
@@ -170,15 +177,16 @@ const app = function() {
                 headers: {
                     "Content-type": "application/json; charset=UTF-8"
                 }
+            }).then((response) => {
+                Promise.all(response.data.map((value) => {
+                    var feature = _.find(app.descriptors[0].list, v => v.name == value)
+                    return app.loadFeature(feature)
+                })).then(() => {
+                    histogram(app, ids, colors, response.data, 'visualizer')
+                    app.deleteAllowed = true;
+                })
             })
            
-            const app = this;
-            await Promise.all(response.data.map(async (value) => {
-                var feature = _.find(app.descriptors[0].list, v => v.name == value)
-                await app.loadFeature(feature)
-            }))
-
-            histogram(app, response.data, 'visualizer')
         },
         selectedFeatures: function() {
             return _.map(_.filter(this.features, v => v.selected), v => v.name)

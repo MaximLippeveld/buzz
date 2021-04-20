@@ -3,12 +3,12 @@
 import * as d3 from 'd3';
 import embed from 'vega-embed'
 
-export const histogram = function(app, features, id) {
+export const histogram = function(app, activePopulations, activePopulationColors, features, id) {
     var spec = {
         $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
         data: { values: app.data },
         transform: [
-            {"filter": {"field": "selected", "oneOf": app.activePopulations()}}
+            {"filter": {"field": "selected", "oneOf": activePopulations}}
         ],
         repeat: features,
         config: {
@@ -28,7 +28,7 @@ export const histogram = function(app, features, id) {
                 color: {
                     field: "selected",
                     type: "nominal",
-                    scale: {"range": app.activePopulationColors()},
+                    scale: {"range": activePopulationColors},
                     opacity: 0.7
                 }
             }
