@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, stream_with_context, Response
 from flask_caching import Cache
 from flask_cors import CORS
 from io import BytesIO
@@ -8,6 +8,8 @@ import base64
 import pandas
 from scipy.spatial.distance import jensenshannon
 import logging
+from more_itertools import chunked
+import json
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -28,8 +30,14 @@ cache.set("data", df)
 
 @app.route("/feather/<path:path>")
 def load_feather(path):
-    df = cache.get("data")
-    return dict(data=df.filter(regex="meta|dim").to_dict(orient="records"))
+    def generate():
+        df = cache.get("data")
+        CHUNK_SIZE = 10000
+        index_chunks = chunked(range(len(df)), CHUNK_SIZE)
+        for ii in index_chunks:
+            yield json.dumps(dict(data=df.iloc[ii].filter(regex="meta|dim").to_dict(orient="records")))
+
+    return Response(generate(), content_type="application/json")
 
 @app.route("/features/list")
 def get_features():

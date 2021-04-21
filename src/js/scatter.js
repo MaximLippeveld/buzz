@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 import * as fc from 'd3fc'
 
-export const scatter = async function(app) {
+export const scatter = function(app) {
     const data = app.data;
 
     const canvas = d3.select("#chart").node();
@@ -9,6 +9,7 @@ export const scatter = async function(app) {
     var height = d3.select("body").node().getBoundingClientRect().height;
     canvas.width = width;
     canvas.height = height;
+
     
     const xScale = d3.scaleLinear()
             .domain([d3.min(data, d => d.dim_1), d3.max(data, d => d.dim_1)])
@@ -44,7 +45,9 @@ export const scatter = async function(app) {
         .chartCartesian(xScale, yScale)
         .webglPlotArea(
             fc.seriesWebglPoint()
-                .equals((a, b) => a === b)
+                .equals((a, b) => {
+                    a === b
+                })
                 .crossValue(d => d.dim_1)
                 .mainValue(d => d.dim_2)
                 .type(d3.symbolCircle)
@@ -120,7 +123,11 @@ export const scatter = async function(app) {
                 });
         });
 
-    d3.select("#chart")
-        .datum(data)
-        .call(chart);
+    function redraw(data) {
+        d3.select("#chart")
+            .datum(data)
+            .call(chart);
+    }
+    redraw(data);
+    return redraw;
 }

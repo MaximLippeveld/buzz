@@ -14,6 +14,7 @@ const populationColorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.rang
 
 const app = function() {
     return {
+        data: [],
         currPopId: 1,
         currAnnotId: 1,
         populations: [],
@@ -34,46 +35,58 @@ const app = function() {
             feather.replace()
 
             const parent = this;
-            d3.json("http://127.0.0.1:5000/feather/VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather").then(function(response) {
-                parent.data = _.map(response.data, function(e) {
-                    e.selected = 0;
-                    return e
-                });
-                parent.quadtree = d3
-                    .quadtree()
-                    .x(d => d.dim_1)
-                    .y(d => d.dim_2)
-                    .addAll(parent.data);
-
-                parent.updateFillColor();
-                scatter(parent);
-            
-                d3.json("http://127.0.0.1:5000/features/list").then(function(response) {
-                    parent.descriptors.push({
-                        "name": "features", 
-                        "type": "continuous", 
-                        "list": _.map(response.features, function(value) {
-                            return {
-                                "name": value,
-                                "selected": false,
-                                "loaded": false
-                            }
-                        })
+            d3.json("http://127.0.0.1:5000/features/list").then(function(response) {
+                parent.descriptors.push({
+                    "name": "features", 
+                    "type": "continuous", 
+                    "list": _.map(response.features, function(value) {
+                        return {
+                            "name": value,
+                            "selected": false,
+                            "loaded": false
+                        }
                     })
-                    parent.descriptors.push({
-                        "name": "meta",
-                        "type": "nominal", 
-                        "list": _.map(response.meta, function(value) {
-                            return {
-                                "name": value,
-                                "selected": false,
-                                "loaded": false
-                            }
-                        })
+                })
+                parent.descriptors.push({
+                    "name": "meta",
+                    "type": "nominal", 
+                    "list": _.map(response.meta, function(value) {
+                        return {
+                            "name": value,
+                            "selected": false,
+                            "loaded": false
+                        }
                     })
                 })
             })
+            
+            const streamingLoaderWorker = new Worker("/bin/streaming.js", {type: "module"})
+            let first = true;
+            let chart = null;
+            streamingLoaderWorker.onmessage = ({data: {payload, totalBytes, finished}}) => {
+                parent.data = parent.data.concat(_.map(payload.data, function(e) {
+                    e.selected = 0;
+                    return e
+                }));
 
+                if (finished) {
+                    parent.quadtree = d3
+                        .quadtree()
+                        .x(d => d.dim_1)
+                        .y(d => d.dim_2)
+                        .addAll(parent.data);
+                    parent.updateFillColor();
+                }
+
+                if (first) {
+                    parent.updateFillColor();
+                    chart = scatter(parent);
+                    first = false;
+                }
+                parent.updateFillColor();
+                chart(parent.data);
+            }
+            streamingLoaderWorker.postMessage("http://127.0.0.1:5000/feather/VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather");
         },
         brushed() {
             const app = this;
