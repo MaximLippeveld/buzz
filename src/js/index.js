@@ -26,11 +26,11 @@ const app = function() {
         colorHue: populationFeature,
         colorTransform: v => v,
         fillColor: null,
-        updateFillColor: async function() {
+        async updateFillColor() {
             const selectedFill = d => webglColor(this.colorScale(this.colorTransform(d[this.colorHue.name])), 0.9)
             this.fillColor = fc.webglFillColor().value(selectedFill).data(this.data);
         },
-        load: function() {
+        load() {
             feather.replace()
 
             const parent = this;
@@ -75,7 +75,7 @@ const app = function() {
             })
 
         },
-        brushed: function() {
+        brushed() {
             const app = this;
             search(this.currPopId, this.quadtree, this.brushDomains).then((found) => {
                 if (found > 0) {
@@ -96,19 +96,19 @@ const app = function() {
                 }
             })
         },
-        removePopulation: function(popId) {
+        removePopulation(popId) {
             var idx = _.findIndex(this.populations, e => e.id == popId)
             search(0, this.quadtree, this.populations[idx].brushDomains)
             this.populations.splice(idx, 1)
             this.reColor(populationFeature, null)
         },
-        activePopulations: function() {
+        activePopulation() {
             return _.map(_.filter(this.populations, v => v.active), v => v.id)
         },
-        activePopulationColors: function() {
+        activePopulationColors() {
             return _.flatMap(_.filter(this.populations, v => v.active), v => v.color)
         },
-        reColor: function(feature, type) {
+        reColor(feature, type) {
             this.colorHue.selected = false;
             feature.selected = true;
 
@@ -145,15 +145,15 @@ const app = function() {
                 app.updateFillColor().then(() => app.redraw());
             })
         },
-        redraw: async function() {
+        async redraw() {
             d3.select('d3fc-group')
                 .node()
                 .requestRedraw();
         },
-        showPopulation: function() {
+        showPopulation() {
             this.reColor(populationFeature, null)
         },
-        loadFeature: async function(feature) {
+        async loadFeature(feature) {
             if (!feature.loaded) {
                 const response = await d3.json("http://127.0.0.1:5000/features/get/"+feature.name)
                 this.data = _.map(this.data, function(value, index) {
@@ -163,7 +163,7 @@ const app = function() {
                 feature.loaded = true
             }
         },
-        jsDivergence: async function() {
+        async jsDivergence() {
             this.deleteAllowed = false;
 
             const ids = this.activePopulations();
@@ -194,10 +194,10 @@ const app = function() {
             })
            
         },
-        selectedFeatures: function() {
+        selectedFeatures() {
             return _.map(_.filter(this.features, v => v.selected), v => v.name)
         },
-        cycleChannel: function(offset, channels, id, event) {
+        cycleChannel(offset, channels, id, event) {
             function cycleOne(id) {
                 const el = document.getElementById("im-"+id);
                 const newMargin = parseInt(el.style.marginLeft) + offset;
@@ -212,7 +212,7 @@ const app = function() {
                 cycleOne(id)
             }
         },
-        annotation: function(x, y, data, app, hold) {
+        annotation(x, y, data, app, hold) {
             function post() {
                 feather.replace()
                 _.each(app.annotations, function(value) {
