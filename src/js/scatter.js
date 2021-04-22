@@ -45,9 +45,7 @@ export const scatter = function(app) {
         .chartCartesian(xScale, yScale)
         .webglPlotArea(
             fc.seriesWebglPoint()
-                .equals((a, b) => {
-                    a === b
-                })
+                .equals((a, b) => a === b)
                 .crossValue(d => d.dim_1)
                 .mainValue(d => d.dim_2)
                 .type(d3.symbolCircle)
@@ -65,7 +63,7 @@ export const scatter = function(app) {
                     );
                 })
         )
-        .svgPlotArea(brush)
+        .svgPlotArea(brush) //TODO: enable brush after progressive loading
         .decorate(sel => {
 
             sel
@@ -78,22 +76,22 @@ export const scatter = function(app) {
                 .classed("invisible", true)
 
             // the brush SVG is hidden initially so that exploration is possible
-            const brushArea = sel
-                .enter()
-                .select('d3fc-svg.svg-plot-area')
-                .classed("hidden", true)
+            // const brushArea = sel
+            //     .enter()
+            //     .select('d3fc-svg.svg-plot-area')
+            //     .classed("hidden", true)
 
             // the user can press 'b' to enable brushing
             // pressing 'b' unhides the brush SVG, disabling exploration
-            function toggleBrush() {
-                    brushArea.classed("hidden", !brushArea.classed("hidden"))
-                    app.brushEnabled = !app.brushEnabled
-                    d3.select('d3fc-group')
-                        .node()
-                        .requestRedraw();
-            }
-            d3.select("body").on("keydown.enablebrush", event => { if (event.key == "b") toggleBrush() })
-            d3.select("#brush-toggle").on("click", toggleBrush)
+            // function toggleBrush() {
+            //         brushArea.classed("hidden", !brushArea.classed("hidden"))
+            //         app.brushEnabled = !app.brushEnabled
+            //         d3.select('d3fc-group')
+            //             .node()
+            //             .requestRedraw();
+            // }
+            // d3.select("body").on("keydown.enablebrush", event => { if (event.key == "b") toggleBrush() })
+            // d3.select("#brush-toggle").on("click", toggleBrush)
 
             // setup zooming and panning
             sel

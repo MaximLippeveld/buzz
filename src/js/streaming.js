@@ -1,31 +1,55 @@
+
+const jsonChunckedParser = () => {
+  const textDecoder = new TextDecoder("utf-8");
+  let input = "";
+
+  return {
+    parseChunk(chunk) {
+        const decoded = textDecoder.decode(chunk);
+        input += decoded
+
+        if (input.endsWith("}]}")) {
+            try {
+                const payload = JSON.parse(input);
+                input = "";
+                return payload;
+            } catch (error) {
+                console.log(error, input)
+            }
+        }
+
+        return null;
+    }
+  };
+};
+
+
 onmessage = async ({data: url}) => {
+
+    let totalBytes = 0;
+    const jsonParser = jsonChunckedParser();
     const response = await fetch(url, {
         headers: {
             "Content-type": "application/json; charset=UTF-8"
         }
     })
-    .then(response => response.body)
-    .then(rb => {
-        const reader = rb.getReader();
-        const dec = new TextDecoder()
-        let totalBytes = 0;
-        let previousChunk = "";
-        return new ReadableStream({
+
+    const streamedResponse = new Response(
+        new ReadableStream({
             start(controller) {
+                const reader = response.body.getReader();
+                
                 const read = async () => {
                     const { done, value } = await reader.read();
                     if (done) {
                         controller.close();
                         return;
                     }
-
                     totalBytes += value.byteLength;
-                    try {
-                        const payload = JSON.parse(previousChunk+dec.decode(value));
-                        previousChunk = "";
+
+                    var payload = jsonParser.parseChunk(value)
+                    if (payload != null) {
                         postMessage({payload, totalBytes});
-                    } catch (error) {
-                        previousChunk = dec.decode(value);
                     }
 
                     controller.enqueue(value);
@@ -35,9 +59,8 @@ onmessage = async ({data: url}) => {
                 read();
             }
         })
-    })
-    .then(stream => {
-        return new Response(stream, { headers: { "Content-Type": "application/json" } }).text();
-    })
-    .then(data => postMessage({ payload: [], totalBytes: data.length, finished: true }));
+    )
+
+    const data = await streamedResponse.text();
+    postMessage({ payload: {data:[]}, totalBytes: data.length, finished: true });
 }

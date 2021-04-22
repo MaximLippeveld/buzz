@@ -76,15 +76,19 @@ const app = function() {
                         .y(d => d.dim_2)
                         .addAll(parent.data);
                     parent.updateFillColor();
+                    console.log("Finished", parent.data.length)
                 }
 
-                if (first) {
+                if ((first) && (parent.data.length > 0)) {
                     parent.updateFillColor();
                     chart = scatter(parent);
                     first = false;
                 }
-                parent.updateFillColor();
-                chart(parent.data);
+
+                if (!first) {
+                    parent.updateFillColor();
+                    chart(parent.data);
+                }
             }
             streamingLoaderWorker.postMessage("http://127.0.0.1:5000/feather/VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather");
         },
