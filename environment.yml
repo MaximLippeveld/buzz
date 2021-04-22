@@ -7,7 +7,9 @@ dependencies:
   - numpy
   - flask
   - flask-cors
-  - flask-caching
   - pandas
-  - pyarrow
   - scipy
+  - pip:
+    - pillow
+    - Flask-Caching
+    - pyarrow
