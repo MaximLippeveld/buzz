@@ -32,7 +32,7 @@ cache.set("data", df)
 def load_feather(path):
     def generate():
         df = cache.get("data")
-        CHUNK_SIZE = 10000
+        CHUNK_SIZE = 1000
         index_chunks = chunked(range(len(df)), CHUNK_SIZE)
         for ii in index_chunks:
             yield json.dumps(dict(data=df.iloc[ii].filter(regex="meta|dim").to_dict(orient="records")))

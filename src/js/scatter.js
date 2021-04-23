@@ -33,69 +33,93 @@ export const scatter = function(app) {
                 .requestRedraw();
         })
 
-    const brush = fc.brush()
-        .on("brush end", function(event) {
-            app.brushDomains = [
-                [event.xDomain[0], event.yDomain[0]],
-                [event.xDomain[1], event.yDomain[1]]
-            ]
-        })
-
     const chart = fc
         .chartCartesian(xScale, yScale)
         .webglPlotArea(
-            fc.seriesWebglPoint()
-                .equals((a, b) => a === b)
-                .crossValue(d => d.dim_1)
-                .mainValue(d => d.dim_2)
-                .type(d3.symbolCircle)
-                .size(dotSize)
-                .decorate((program) => {
-                    app.fillColor(program);
+            fc.seriesWebglMulti()
+            .series([
+                fc.seriesWebglPoint()
+                    .equals((a, b) => a === b)
+                    .crossValue(d => d.dim_1)
+                    .mainValue(d => d.dim_2)
+                    .type(d3.symbolCircle)
+                    .size(dotSize)
+                    .decorate((program) => {
+                        app.fillColor(program);
 
-                    const gl = program.context();
-                    gl.enable(gl.BLEND);
-                    gl.blendFuncSeparate(
-                        gl.SRC_ALPHA,
-                        gl.ONE_MINUS_DST_ALPHA,
-                        gl.ONE,
-                        gl.ONE_MINUS_SRC_ALPHA
-                    );
-                })
+                        const gl = program.context();
+                        gl.enable(gl.BLEND);
+                        gl.blendFuncSeparate(
+                            gl.SRC_ALPHA,
+                            gl.ONE_MINUS_DST_ALPHA,
+                            gl.ONE,
+                            gl.ONE_MINUS_SRC_ALPHA
+                        );
+                    })
+            ])
+            .mapping(data => data.series)
         )
-        .svgPlotArea(brush) //TODO: enable brush after progressive loading
         .decorate(sel => {
-
             sel
-                .enter()
                 .select('d3fc-svg.x-axis')
                 .classed("invisible", true)
             sel
-                .enter()
+                .select('d3fc-svg.y-axis')
+                .classed("invisible", true)
+        });
+
+    function redraw(data) {
+        d3.select("#chart")
+            .datum({
+                series: data,
+                brushedRange: [[0,0], [0,0]]
+            })
+            .call(chart);
+    }
+    redraw(data);
+
+    function addInteractivity() {
+        chart.svgPlotArea(
+            fc.seriesSvgMulti()
+            .series([
+                fc.brush()
+                    .handleSize(10)
+                    .on("brush end", function(event) {
+                        app.brushDomains = [
+                            [event.xDomain[0], event.yDomain[0]],
+                            [event.xDomain[1], event.yDomain[1]]
+                        ]
+                    })
+            ])
+            .mapping(data => data.brushedRange)
+        ).decorate(sel => {
+            
+            sel
+                .select('d3fc-svg.x-axis')
+                .classed("invisible", true)
+            sel
                 .select('d3fc-svg.y-axis')
                 .classed("invisible", true)
 
             // the brush SVG is hidden initially so that exploration is possible
-            // const brushArea = sel
-            //     .enter()
-            //     .select('d3fc-svg.svg-plot-area')
-            //     .classed("hidden", true)
+            const brushArea = sel
+                .select('d3fc-svg.svg-plot-area')
+                .classed("hidden", true)
 
             // the user can press 'b' to enable brushing
             // pressing 'b' unhides the brush SVG, disabling exploration
-            // function toggleBrush() {
-            //         brushArea.classed("hidden", !brushArea.classed("hidden"))
-            //         app.brushEnabled = !app.brushEnabled
-            //         d3.select('d3fc-group')
-            //             .node()
-            //             .requestRedraw();
-            // }
-            // d3.select("body").on("keydown.enablebrush", event => { if (event.key == "b") toggleBrush() })
-            // d3.select("#brush-toggle").on("click", toggleBrush)
-
+            function toggleBrush() {
+                    brushArea.classed("hidden", !brushArea.classed("hidden"))
+                    app.brushEnabled = !app.brushEnabled
+                    d3.select('d3fc-group')
+                        .node()
+                        .requestRedraw();
+            }
+            d3.select("body").on("keydown.enablebrush", event => { if (event.key == "b") toggleBrush() })
+            d3.select("#brush-toggle").on("click", toggleBrush)
+            
             // setup zooming and panning
             sel
-                .enter()
                 .select('d3fc-canvas.webgl-plot-area')
                 .on("measure.range", (event, d) => {
                     xScaleOriginal.range([0, event.detail.width]);
@@ -119,13 +143,8 @@ export const scatter = function(app) {
                         app.annotation(coord[0], coord[1], c, app, event.ctrlKey)
                     }
                 });
-        });
-
-    function redraw(data) {
-        d3.select("#chart")
-            .datum(data)
-            .call(chart);
+        })
     }
-    redraw(data);
-    return redraw;
+
+    return [redraw, addInteractivity];
 }

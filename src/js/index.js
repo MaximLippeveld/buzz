@@ -62,7 +62,7 @@ const app = function() {
             
             const streamingLoaderWorker = new Worker("/bin/streaming.js", {type: "module"})
             let first = true;
-            let chart = null;
+            let redraw, addBrush;
             streamingLoaderWorker.onmessage = ({data: {payload, totalBytes, finished}}) => {
                 parent.data = parent.data.concat(_.map(payload.data, function(e) {
                     e.selected = 0;
@@ -76,18 +76,17 @@ const app = function() {
                         .y(d => d.dim_2)
                         .addAll(parent.data);
                     parent.updateFillColor();
-                    console.log("Finished", parent.data.length)
+                    addBrush();
+                    console.log("Finished", parent.data.length);
                 }
 
-                if ((first) && (parent.data.length > 0)) {
+                if (first) {
                     parent.updateFillColor();
-                    chart = scatter(parent);
+                    [redraw, addBrush] = scatter(parent);
                     first = false;
-                }
-
-                if (!first) {
+                } else {
                     parent.updateFillColor();
-                    chart(parent.data);
+                    redraw(parent.data);
                 }
             }
             streamingLoaderWorker.postMessage("http://127.0.0.1:5000/feather/VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather");
@@ -119,7 +118,7 @@ const app = function() {
             this.populations.splice(idx, 1)
             this.reColor(populationFeature, null)
         },
-        activePopulation() {
+        activePopulations() {
             return _.map(_.filter(this.populations, v => v.active), v => v.id)
         },
         activePopulationColors() {
