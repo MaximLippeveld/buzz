@@ -64,10 +64,12 @@ const app = function() {
             let first = true;
             let redraw, addBrush;
             streamingLoaderWorker.onmessage = ({data: {payload, totalBytes, finished}}) => {
-                parent.data = parent.data.concat(_.map(payload.data, function(e) {
-                    e.selected = 0;
-                    return e
-                }));
+                if(payload.length > 0) {
+                    parent.data = parent.data.concat(_.map(payload, function(e) {
+                        e.selected = 0;
+                        return e
+                    }));
+                }
 
                 if (finished) {
                     parent.quadtree = d3

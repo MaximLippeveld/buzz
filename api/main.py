@@ -23,8 +23,8 @@ app.config.from_mapping(config)
 cache = Cache(app)
 CORS(app)
 
-path = "VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather"
-# path = "weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/c8ba196c-0b22-4489-9f9c-1242f68dd7a5.feather"
+# path = "VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather"
+path = "weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/c8ba196c-0b22-4489-9f9c-1242f68dd7a5.feather"
 df = pandas.read_feather(path)
 cache.set("data", df) 
 
@@ -32,9 +32,9 @@ cache.set("data", df)
 def load_feather(path):
     def generate():
         df = cache.get("data")
-        CHUNK_SIZE = 1000
+        CHUNK_SIZE = 10000
         index_chunks = chunked(range(len(df)), CHUNK_SIZE)
-        for ii in index_chunks:
+        for i, ii in enumerate(index_chunks):
             yield json.dumps(dict(data=df.iloc[ii].filter(regex="meta|dim").to_dict(orient="records")))
 
     return Response(generate(), content_type="application/json")

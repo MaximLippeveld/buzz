@@ -7,25 +7,32 @@ const jsonChunckedParser = () => {
     parseChunk(chunk) {
         const decoded = textDecoder.decode(chunk);
         input += decoded
+        if (input.includes("}]}")) {
 
-        if (input.endsWith("}]}")) {
-            try {
-                const payload = JSON.parse(input);
+            const packets = input.split("}{");
+            var npackets = (input.match(/data/g) || []).length;
+            if (!input.endsWith("}]}")) {
+                npackets -= 1;
+                input = "{" + packets[packets.length-1];
+            } else {
                 input = "";
-                return payload;
-            } catch (error) {
-                console.log(error, input)
             }
-        }
 
+            var payload = [];
+            for (let i = 0; i<npackets; i++) {
+                if (i > 0) packets[i] = "{" + packets[i]
+                if ((i < npackets-1) || (input.length > 0)) packets[i] += "}"
+                payload.push(...JSON.parse(packets[i]).data)
+            }
+            return payload;
+        }
         return null;
     }
   };
-};
+}
 
 
 onmessage = async ({data: url}) => {
-
     let totalBytes = 0;
     const jsonParser = jsonChunckedParser();
     const response = await fetch(url, {
