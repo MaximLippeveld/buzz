@@ -20,6 +20,7 @@ const app = function() {
         populations: [],
         annotations: [],
         descriptors: [],
+        scatterLoading: true,
         brushEnabled: false,
         jsDivergenceError: false,
         deleteAllowed: true,
@@ -59,11 +60,31 @@ const app = function() {
                     })
                 })
             })
+
+
+            var barheight = 20;
+            var progress = [{c: "white", s: "black", value: 1}, {c: "black", s: "black", value: 0}]
+            const loadingDiv = d3.select("#loading").classed("z-50", true);
+            const width = loadingDiv.node().getBoundingClientRect().width
+            const progressScale = d3.scaleLinear().range([0, width]).domain([0, 1])
+            const svg = loadingDiv.select("svg")
+                .attr("width", width)
+                .attr("height", barheight)
+            svg
+                .selectAll("rect")
+                .data(progress)
+                .enter()
+                .append("rect")
+                .attr("width", d => progressScale(d.value))
+                .attr("height", barheight)
+                .attr("fill", d => d.c)
+                .attr("stroke", d => d.s)
+                .attr("stroke-width", 4)
             
             const streamingLoaderWorker = new Worker("/bin/streaming.js", {type: "module"})
             let first = true;
             let redraw, addBrush;
-            streamingLoaderWorker.onmessage = ({data: {payload, totalBytes, finished}}) => {
+            streamingLoaderWorker.onmessage = ({data: {payload, totalBytes, total, finished}}) => {
                 if(payload.length > 0) {
                     parent.data = parent.data.concat(_.map(payload, function(e) {
                         e.selected = 0;
@@ -79,6 +100,7 @@ const app = function() {
                         .addAll(parent.data);
                     parent.updateFillColor();
                     addBrush();
+                    parent.scatterLoading = false;
                     console.log("Finished", parent.data.length);
                 }
 
@@ -90,6 +112,14 @@ const app = function() {
                     parent.updateFillColor();
                     redraw(parent.data);
                 }
+
+                progress[1].value = parent.data.length / total;
+                svg
+                    .selectAll("rect")
+                    .data(progress)
+                    .transition()
+                    .duration(1000)
+                    .attr("width", d => progressScale(d.value))
             }
             streamingLoaderWorker.postMessage("http://127.0.0.1:5000/feather/VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather");
         },

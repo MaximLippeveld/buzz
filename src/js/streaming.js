@@ -10,7 +10,7 @@ const jsonChunckedParser = () => {
         if (input.includes("}]}")) {
 
             const packets = input.split("}{");
-            var npackets = (input.match(/data/g) || []).length;
+            var npackets = (input.match(/\"data\":/g) || []).length;
             if (!input.endsWith("}]}")) {
                 npackets -= 1;
                 input = "{" + packets[packets.length-1];
@@ -31,8 +31,17 @@ const jsonChunckedParser = () => {
   };
 }
 
-
+var total;
 onmessage = async ({data: url}) => {
+
+    var meta = await fetch(url+"/meta", {
+        headers: {
+            "Content-type": "application/json; charset=UTF-8"
+        }
+    })
+    meta = await meta.json()
+    total = meta.total
+
     let totalBytes = 0;
     const jsonParser = jsonChunckedParser();
     const response = await fetch(url, {
@@ -56,7 +65,7 @@ onmessage = async ({data: url}) => {
 
                     var payload = jsonParser.parseChunk(value)
                     if (payload != null) {
-                        postMessage({payload, totalBytes});
+                        postMessage({payload, totalBytes, total});
                     }
 
                     controller.enqueue(value);
@@ -69,5 +78,5 @@ onmessage = async ({data: url}) => {
     )
 
     const data = await streamedResponse.text();
-    postMessage({ payload: {data:[]}, totalBytes: data.length, finished: true });
+    postMessage({ payload: {data:[]}, totalBytes: data.length, total: total, finished: true });
 }

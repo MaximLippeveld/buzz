@@ -32,12 +32,17 @@ cache.set("data", df)
 def load_feather(path):
     def generate():
         df = cache.get("data")
-        CHUNK_SIZE = 10000
+        CHUNK_SIZE = 50000
         index_chunks = chunked(range(len(df)), CHUNK_SIZE)
-        for i, ii in enumerate(index_chunks):
+        for ii in index_chunks:
             yield json.dumps(dict(data=df.iloc[ii].filter(regex="meta|dim").to_dict(orient="records")))
 
     return Response(generate(), content_type="application/json")
+
+@app.route("/feather/<path:path>/meta")
+def load_feather_meta(path):
+    df = cache.get("data")
+    return dict(total=len(df))
 
 @app.route("/features/list")
 def get_features():
