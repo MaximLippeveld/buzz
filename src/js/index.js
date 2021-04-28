@@ -161,7 +161,7 @@ const app = function() {
             feature.selected = true;
 
             const app = this;
-            this.loadFeature(feature).then(() => {
+            this.loadFeatures([feature]).then(() => {
                 app.colorTransform = v => v
                 switch(type) {
                     case "nominal":
@@ -201,15 +201,30 @@ const app = function() {
         showPopulation() {
             this.reColor(populationFeature, null)
         },
-        async loadFeature(feature) {
-            if (!feature.loaded) {
-                const response = await d3.json("http://127.0.0.1:5000/features/get/"+feature.name)
-                this.data = _.map(this.data, function(value, index) {
-                    value[feature.name] = response.data[index]
+        async loadFeatures(features) {
+            const app = this;
+
+            features = features.filter((f) => !f.loaded)
+
+            // load all requested features in parallel
+            return Promise.allSettled(features.map(async (f) => {
+                return new Promise(async (resolve, reject) => {
+                    const d = await d3.json("http://127.0.0.1:5000/features/get/"+f.name)
+                    f.loaded = true;
+                    resolve({
+                        data: d.data,
+                        feature: f
+                    })
+                })
+            }))
+            .then((data) => {
+                app.data.forEach(function(value, index) {
+                    _.each(data, (d) => {
+                        value[d.value.feature.name] = d.value.data[index]
+                    })
                     return value
                 })
-                feature.loaded = true
-            }
+            })
         },
         async jsDivergence() {
             this.deleteAllowed = false;
@@ -222,7 +237,6 @@ const app = function() {
             }
             const colors = this.activePopulationColors();
 
-            const app = this;
             d3.json("http://127.0.0.1:5000/features/js-divergence", {
                 method:"POST",
                 body: JSON.stringify({
@@ -232,10 +246,14 @@ const app = function() {
                     "Content-type": "application/json; charset=UTF-8"
                 }
             }).then((response) => {
-                Promise.all(response.data.map((value) => {
-                    var feature = _.find(app.descriptors[0].list, v => v.name == value)
-                    return app.loadFeature(feature)
-                })).then(() => {
+                const app = this;
+                // find feature objects and filter out already loaded
+                const features = response.data.map((value) => {
+                    return _.find(app.descriptors[0].list, v => v.name == value)
+                })
+
+                this.loadFeatures(features)
+                .then(() => {
                     histogram(app, ids, colors, response.data, 'visualizer')
                     app.deleteAllowed = true;
                 })
