@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { scatter } from './scatter';
 import { hashCode, search, webglColor } from './util'
 import * as fc from 'd3fc'
-import { histogram } from './histogram';
+import { histogram_d3 } from './histogram';
 import feather from 'feather-icons';
 import * as _ from 'lodash';
 
@@ -248,7 +248,8 @@ const app = function() {
 
                 this.loadFeatures(features)
                 .then(() => {
-                    histogram(app, ids, colors, response.data, 'visualizer')
+                    // histogram(app, ids, colors, response.data, 'visualizer')
+                    histogram_d3(app, response.data)
                     app.deleteAllowed = true;
                 })
             })
