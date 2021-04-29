@@ -20,6 +20,8 @@ const app = function() {
         populations: [],
         annotations: [],
         descriptors: [],
+        descriptor_data: {"selected": []},
+        descriptor_idx: [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}],
         scatterLoading: true,
         brushEnabled: false,
         jsDivergenceError: false,
@@ -29,38 +31,34 @@ const app = function() {
         colorTransform: v => v,
         fillColor: null,
         async updateFillColor() {
-            const selectedFill = d => webglColor(this.colorScale(this.colorTransform(d[this.colorHue.name])), 0.9)
-            this.fillColor = fc.webglFillColor().value(selectedFill).data(this.data);
+            const selectedFill = f => webglColor(this.colorScale(this.colorTransform(f)), 0.9)
+            this.fillColor = fc.webglFillColor().value(selectedFill).data(this.descriptor_data[this.colorHue.name]);
         },
         load() {
             feather.replace()
 
             const parent = this;
             d3.json("http://127.0.0.1:5000/features/list").then(function(response) {
-                parent.descriptors.push({
-                    "name": "features", 
-                    "type": "continuous", 
-                    "list": _.map(response.features, function(value) {
-                        return {
-                            "name": value,
-                            "selected": false,
-                            "loaded": false
-                        }
+                let count = 0;
+                response.features.forEach((value) => {
+                    parent.descriptors.push({
+                        "type": "continuous", 
+                        "name": value,
+                        "selected": false,
+                        "loaded": false
                     })
+                    parent.descriptor_idx[0]["idx"].push(count++)
                 })
-                parent.descriptors.push({
-                    "name": "meta",
-                    "type": "nominal", 
-                    "list": _.map(response.meta, function(value) {
-                        return {
-                            "name": value,
-                            "selected": false,
-                            "loaded": false
-                        }
+                response.meta.forEach((value) => {
+                    parent.descriptors.push({
+                        "type": "nominal", 
+                        "name": value,
+                        "selected": false,
+                        "loaded": false
                     })
+                    parent.descriptor_idx[1]["idx"].push(count++)
                 })
             })
-
 
             var barheight = 20;
             var progress = [{c: "white", s: "black", value: 1}, {c: "black", s: "black", value: 0}]
@@ -84,12 +82,15 @@ const app = function() {
             const streamingLoaderWorker = new Worker("/bin/streaming.js", {type: "module"})
             let first = true;
             let redraw, addBrush;
+            let count = 0;
             streamingLoaderWorker.onmessage = ({data: {payload, totalBytes, total, finished}}) => {
                 if(payload.length > 0) {
-                    parent.data = parent.data.concat(_.map(payload, function(e) {
-                        e.selected = 0;
-                        return e
-                    }));
+                    parent.data = parent.data.concat(payload.map((d) => {
+                        d.id = count++;
+                        return d
+                    }))
+                    parent.descriptor_data["selected"] = parent.descriptor_data["selected"].concat(
+                        new Array(payload.length).fill(0))
                 }
 
                 if (finished) {
@@ -125,11 +126,11 @@ const app = function() {
         },
         brushed() {
             const app = this;
-            search(this.currPopId, this.quadtree, this.brushDomains).then((found) => {
-                if (found > 0) {
+            search(this.quadtree, this.brushDomains).then((found) => {
+                if (found.length > 0) {
                     const pop = {
                         "id": app.currPopId,
-                        "size": found,
+                        "size": found.length,
                         "brushDomains": app.brushDomains,
                         "active": false,
                         "color": populationColorScale(app.currPopId)
@@ -139,6 +140,10 @@ const app = function() {
                         feather.replace()
                         document.getElementById("population-"+pop.id).style.borderColor = pop.color 
                     })
+                    found.forEach((f) => {
+                        app.descriptor_data["selected"][f.id] = app.currPopId;
+                    })
+
                     app.currPopId++;
                     app.reColor(populationFeature, null)
                 }
@@ -169,7 +174,7 @@ const app = function() {
                         const scheme = uniques <= 10 ? d3.schemeCategory10 : d3.interpolateOrRd;
                         app.colorScale = d3.scaleSequential(scheme).domain(d3.range(uniques))
 
-                        const value = app.data[0][feature.name]
+                        const value = app.descriptor_data[feature.name][0]
                         if (typeof value === 'string' || value instanceof String) {
                             if (!isFinite(Number(value))) {
                                 app.colorTransform = v => hashCode(v) % uniques
@@ -179,7 +184,7 @@ const app = function() {
                         } 
                         break;
                     case "continuous":
-                        const arr = _.flatMap(app.data, d => d[feature.name]);
+                        const arr = app.descriptor_data[feature.name];
                         app.colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([
                             d3.quantile(arr, 0.05),
                             d3.quantile(arr, 0.95)
@@ -208,23 +213,10 @@ const app = function() {
 
             // load all requested features in parallel
             return Promise.allSettled(features.map(async (f) => {
-                return new Promise(async (resolve, reject) => {
-                    const d = await d3.json("http://127.0.0.1:5000/features/get/"+f.name)
-                    f.loaded = true;
-                    resolve({
-                        data: d.data,
-                        feature: f
-                    })
-                })
+                const d = await d3.json("http://127.0.0.1:5000/features/get/"+f.name)
+                f.loaded = true;
+                app.descriptor_data[f.name] = d.data
             }))
-            .then((data) => {
-                app.data.forEach(function(value, index) {
-                    _.each(data, (d) => {
-                        value[d.value.feature.name] = d.value.data[index]
-                    })
-                    return value
-                })
-            })
         },
         async jsDivergence() {
             this.deleteAllowed = false;
@@ -237,19 +229,21 @@ const app = function() {
             }
             const colors = this.activePopulationColors();
 
+            const app = this;
             d3.json("http://127.0.0.1:5000/features/js-divergence", {
                 method:"POST",
                 body: JSON.stringify({
-                    populations: _.flatMap(this.data, v => ids.includes(v.selected) ? v.selected: 0)
+                    populations: app.descriptor_data["selected"],
+                    selected: ids 
                 }),
                 headers: {
                     "Content-type": "application/json; charset=UTF-8"
                 }
             }).then((response) => {
-                const app = this;
                 // find feature objects and filter out already loaded
                 const features = response.data.map((value) => {
-                    return _.find(app.descriptors[0].list, v => v.name == value)
+                    const a = app.descriptor_idx[0].idx.map(i => app.descriptors[i])
+                    return _.find(a, v => v.name == value)
                 })
 
                 this.loadFeatures(features)

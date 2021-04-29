@@ -78,5 +78,5 @@ onmessage = async ({data: url}) => {
     )
 
     const data = await streamedResponse.text();
-    postMessage({ payload: {data:[]}, totalBytes: data.length, total: total, finished: true });
+    postMessage({ payload: [], totalBytes: data.length, total: total, finished: true });
 }

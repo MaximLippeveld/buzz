@@ -23,8 +23,8 @@ app.config.from_mapping(config)
 cache = Cache(app)
 CORS(app)
 
-# path = "VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather"
-path = "weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/c8ba196c-0b22-4489-9f9c-1242f68dd7a5.feather"
+path = "VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather"
+# path = "weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/c8ba196c-0b22-4489-9f9c-1242f68dd7a5.feather"
 df = pandas.read_feather(path)
 cache.set("data", df) 
 
@@ -58,8 +58,8 @@ def get_feature(feature):
 
 @app.route("/features/js-divergence", methods=["POST"])
 def get_js_divergence_between_populations():
-    populations = request.json["populations"]
-    popids = [i for i in numpy.unique(populations) if i != 0]
+    populations = numpy.array(request.json["populations"])
+    popids = request.json["selected"]
 
     def to_prob(vec1, vec2):
         histP = numpy.histogram(vec1, bins=1000)
@@ -72,8 +72,8 @@ def get_js_divergence_between_populations():
     feat_df = df.filter(regex="feat")
     js = []
     for col in feat_df:
-        vec1 = feat_df.iloc[populations==popids[0]][col].values 
-        vec2 = feat_df.iloc[populations==popids[1]][col].values 
+        vec1 = feat_df.iloc[numpy.nonzero(populations==popids[0])][col].values 
+        vec2 = feat_df.iloc[numpy.nonzero(populations==popids[1])][col].values 
         P, Q = to_prob(vec1, vec2)
         js.append(jensenshannon(P, Q))
 
