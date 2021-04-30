@@ -44,7 +44,7 @@ export const histogram_d3 = async function(app, features) {
 
         svg.append("g")
             .attr("transform", "translate(0," + (height-padding) + ")")
-            .call(d3.axisBottom(xScale.domain(domain)));
+            .call(d3.axisBottom(xScale.domain(domain)).ticks(5));
 
         svg.append("g")
             .attr("transform", "translate(" + padding + ", 0)")

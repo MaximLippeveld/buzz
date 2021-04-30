@@ -131,7 +131,7 @@ const app = function() {
                         "id": app.currPopId,
                         "size": found.length,
                         "brushDomains": app.brushDomains,
-                        "active": false,
+                        "active": true,
                         "color": populationColorScale(app.currPopId)
                     };
                     app.populations.push(pop);
