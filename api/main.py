@@ -23,8 +23,8 @@ app.config.from_mapping(config)
 cache = Cache(app)
 CORS(app)
 
-path = "VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather"
-# path = "weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/c8ba196c-0b22-4489-9f9c-1242f68dd7a5.feather"
+# path = "VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather"
+path = "weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/c8ba196c-0b22-4489-9f9c-1242f68dd7a5.feather"
 df = pandas.read_feather(path)
 cache.set("data", df) 
 

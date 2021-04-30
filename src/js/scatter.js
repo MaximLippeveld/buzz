@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
-import * as fc from 'd3fc'
+import * as fc from 'd3fc';
+import {legend} from './util';
 
 export const scatter = function(app) {
     const data = app.data;
@@ -54,6 +55,17 @@ export const scatter = function(app) {
                             gl.ONE,
                             gl.ONE_MINUS_SRC_ALPHA
                         );
+            
+                        // add colorscale for continuous features
+                        const l = d3.select("#legend")
+                        l.selectAll("svg").remove();
+                        if (app.colorHue.type == "continuous") {
+                            l
+                                .append(() => legend({
+                                    color: app.colorScale,
+                                    title: app.colorHue.name
+                                }))
+                        }
                     })
             ])
             .mapping(data => data.series)
@@ -116,7 +128,7 @@ export const scatter = function(app) {
             }
             d3.select("body").on("keydown.enablebrush", event => { if (event.key == "b") toggleBrush() })
             d3.select("#brush-toggle").on("click", toggleBrush)
-            
+
             // setup zooming and panning
             sel
                 .select('d3fc-canvas.webgl-plot-area')
