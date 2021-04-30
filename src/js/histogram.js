@@ -4,7 +4,9 @@ import * as d3 from 'd3';
 
 
 export const histogram_d3 = async function(app, features) {
-    
+
+    console.time("histogram_3d")
+
     const padding = 50
     const width = 350;
     const height = d3.select("#visualizer").node().getBoundingClientRect().height - 30;
@@ -25,14 +27,25 @@ export const histogram_d3 = async function(app, features) {
             .text(d => d)
 
         const populations = app.populations.filter(pop => pop.active);
-        const populationIds = populations.map(p => p.id)
-        const allValues = app.descriptor_data[feature].filter((v, i) => populationIds.includes(app.descriptor_data["selected"][i]))
-        const domain = [d3.min(allValues), d3.max(allValues)];
+
+        const feats = {};
+        var domain = null
+        populations.forEach(pop => {
+            const feat = pop["idx"].map(i => app.descriptor_data[feature][i]);
+            const extent = d3.extent(feat)
+            if (domain == null) {
+                domain = extent
+            } else {
+                domain[0] = d3.min([extent[0], domain[0]])
+                domain[1] = d3.max([extent[1], domain[1]])
+            }
+            feats[pop.id] = feat;
+        })
+
         var allBins = [];
         var maxY = 0;
         populations.forEach(pop => {
-            const feat = app.descriptor_data[feature].filter((v, i) => pop.id == app.descriptor_data["selected"][i])
-            const bins = binning.domain(domain)(feat)
+            const bins = binning.domain(domain)(feats[pop.id])
             maxY = d3.max([maxY, d3.max(bins, d => d.length)]);
             allBins = allBins.concat(bins.map(b => {
                 const col = d3.color(pop.color);
@@ -73,5 +86,7 @@ export const histogram_d3 = async function(app, features) {
         .attr("height", height)
         .merge(join)
         .on('click', (event , d) => app.reColor(app.descriptors[d]))
-        .each(hist)
+        .each(hist)    
+    
+    console.timeEnd("histogram_3d")
 }

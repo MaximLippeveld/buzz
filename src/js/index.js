@@ -132,14 +132,16 @@ const app = function() {
                         "size": found.length,
                         "brushDomains": app.brushDomains,
                         "active": true,
-                        "color": populationColorScale(app.currPopId)
+                        "color": populationColorScale(app.currPopId),
+                        "idx": new Array(found.length)
                     };
                     app.populations.push(pop);
                     app.$nextTick(() => { 
                         feather.replace()
                         document.getElementById("population-"+pop.id).style.borderColor = pop.color 
                     })
-                    found.forEach((f) => {
+                    found.forEach((f, i) => {
+                        pop["idx"][i] = f.id;
                         app.descriptor_data["selected"][f.id] = app.currPopId;
                     })
 
