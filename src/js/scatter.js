@@ -9,7 +9,6 @@ export const scatter = function(app) {
     var height = d3.select("body").node().getBoundingClientRect().height;
     canvas.width = width;
     canvas.height = height;
-
     
     const xScale = d3.scaleLinear()
             .domain([d3.min(data, d => d.dim_1), d3.max(data, d => d.dim_1)])

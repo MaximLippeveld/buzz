@@ -68,7 +68,7 @@
                     <ul class="overflow-auto flex-auto">
                         <template x-for="idx in item.idx" :key="idx">
                             <li 
-                                @click="reColor(descriptors[idx], descriptors[idx].type)" 
+                                @click="reColor(descriptors[idx])" 
                                 class="cursor-pointer" 
                                 :class="{'font-bold': descriptors[idx].selected, 'opacity-50': !descriptors[idx].loaded}" 
                                 x-text="descriptors[idx].name"></li>
