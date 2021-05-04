@@ -118,7 +118,7 @@ const app = function() {
             streamingLoaderWorker.postMessage("http://127.0.0.1:5000/feather/VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather");
         },
         brushed() {
-            search(this.quadtree, this.brushDomains).then(function(found) {
+            search(this.quadtree, this.brushDomains).then(found => {
                 if (found.length > 0) {
                     const pop = {
                         "id": d3.max(this.descriptor_data["selected"]) + 1,
@@ -141,13 +141,12 @@ const app = function() {
                         document.getElementById("population-"+pop.id).style.borderColor = pop.color 
                     })
                 }
-            }.bind(this))
+            })
         },
         removePopulation(popId) {
             var idx = _.findIndex(this.populations, e => e.id == popId)
-            const app = this;
             search(this.quadtree, this.populations[idx].brushDomains).then(found => {
-                found.forEach(f => app.descriptor_data["selected"][f.id] = 0)
+                found.forEach(f => this.descriptor_data["selected"][f.id] = 0)
             })
             this.populations.splice(idx, 1)
             this.reColor(populationFeature)
@@ -204,15 +203,13 @@ const app = function() {
             this.reColor(populationFeature, null)
         },
         async loadFeatures(features) {
-            const app = this;
-
             features = features.filter((f) => !f.loaded)
 
             // load all requested features in parallel
-            return Promise.allSettled(features.map(async (f) => {
+            return Promise.allSettled(features.map(async f => {
                 const d = await d3.json("http://127.0.0.1:5000/features/get/"+f.name)
                 f.loaded = true;
-                app.descriptor_data[f.name] = d.data
+                this.descriptor_data[f.name] = d.data
             }))
         },
         async jsDivergence() {
@@ -225,22 +222,21 @@ const app = function() {
                 return 
             }
 
-            const app = this;
             d3.json("http://127.0.0.1:5000/features/js-divergence", {
                 method:"POST",
                 body: JSON.stringify({
-                    populations: app.descriptor_data["selected"],
+                    populations: this.descriptor_data["selected"],
                     selected: ids 
                 }),
                 headers: {
                     "Content-type": "application/json; charset=UTF-8"
                 }
             }).then((response) => {
-                const features = response.data.map(value => app.descriptors[value]);
+                const features = response.data.map(value => this.descriptors[value]);
 
                 this.loadFeatures(features)
-                .then(() => histogram_d3(app, response.data))
-                .then(() => app.deleteAllowed = true)
+                .then(() => histogram_d3(this, response.data))
+                .then(() => this.deleteAllowed = true)
             })
            
         },
@@ -275,10 +271,10 @@ const app = function() {
                 })
             }
 
-            d3.json("http://127.0.0.1:5000/image/" + data.meta_dir).then(function(response) {
+            d3.json("http://127.0.0.1:5000/image/" + data.meta_dir).then((response) => {
                 if (!hold) app.annotations = []
 
-                app.annotations.push({
+                this.annotations.push({
                     id: app.currAnnotId++, 
                     images: response.data,
                     pos: {x: x, y: y},
@@ -286,7 +282,7 @@ const app = function() {
                     height: response.height,
                     channels: response.channels
                 })
-                app.$nextTick(() => post())
+                this.$nextTick(() => post())
             });
         }
     }

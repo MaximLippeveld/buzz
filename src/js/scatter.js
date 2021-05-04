@@ -60,12 +60,12 @@ export const scatter = function() {
                             const l = d3.select("#legend svg")
                             l.selectAll("*").remove();
                             l
-                                .append(function() {
+                                .append(() => {
                                     return legend({
                                         color: this.colorScale,
                                         title: this.colorHue.name
                                     })
-                                }.bind(this))
+                                });
                         } else if ((this.colorHue.type == "nominal") && (this.colorHue.name != "selected")) {
                             d3.select("#legend svg").select("svg").remove();
                             d3.select("#legend svg").call(swatches, this.colorScale, this.colorHue);
@@ -124,7 +124,6 @@ export const scatter = function() {
             // the user can press 'b' to enable brushing
             // pressing 'b' unhides the brush SVG, disabling exploration
             function toggleBrush() {
-                console.log(this)
                 brushArea.classed("hidden", !brushArea.classed("hidden"))
                 this.brushEnabled = !this.brushEnabled
                 d3.select('d3fc-group')
