@@ -56,19 +56,21 @@ export const scatter = function() {
                         );
                         
                         // add colorscale for continuous features
+                        const leg = d3.select("#legend svg")
                         if (this.colorHue.type == "continuous") {
-                            const l = d3.select("#legend svg")
-                            l.selectAll("*").remove();
-                            l
+                            leg.selectAll("*").remove();
+                            leg
                                 .append(() => {
                                     return legend({
                                         color: this.colorScale,
                                         title: this.colorHue.name
                                     })
                                 });
-                        } else if ((this.colorHue.type == "nominal") && (this.colorHue.name != "selected")) {
-                            d3.select("#legend svg").select("svg").remove();
-                            d3.select("#legend svg").call(swatches, this.colorScale, this.colorHue);
+                        } else if (this.colorHue.name == "selected") {
+                            leg.selectAll("*").remove();
+                        } else if (this.colorHue.type == "nominal") {
+                            leg.select("svg").remove();
+                            leg.call(swatches, this.colorScale, this.colorHue);
                         }
                     }.bind(this))
             ])

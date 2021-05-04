@@ -200,7 +200,7 @@ const app = function() {
                 .requestRedraw();
         },
         showPopulation() {
-            this.reColor(populationFeature, null)
+            this.reColor(populationFeature)
         },
         async loadFeatures(features) {
             features = features.filter((f) => !f.loaded)
