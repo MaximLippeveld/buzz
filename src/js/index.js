@@ -10,12 +10,10 @@ import * as _ from 'lodash';
 window._ = _
 
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
-// const populationColorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10));
 
 const app = function() {
     return {
         data: [],
-        currPopId: 1,
         currAnnotId: 1,
         populations: [],
         annotations: [],
@@ -29,34 +27,33 @@ const app = function() {
         colorScale: null,
         colorHue: populationFeature,
         fillColor: null,
-        async updateFillColor() {
+        updateFillColor() {
             const selectedFill = f => webglColor(this.colorScale(f), 0.9)
             this.fillColor = fc.webglFillColor().value(selectedFill).data(this.descriptor_data[this.colorHue.name]);
         },
         load() {
             feather.replace()
 
-            const parent = this;
             d3.json("http://127.0.0.1:5000/features/list").then(function(response) {
-                response.features.forEach((value) => {
-                    parent.descriptors[value] = {
+                response.features.forEach(function(value) {
+                    this.descriptors[value] = {
                         "type": "continuous",
                         "name": value, 
                         "selected": false,
                         "loaded": false
                     };
-                    parent.descriptor_idx[0]["idx"].push(value);
-                })
-                response.meta.forEach((value) => {
-                    parent.descriptors[value] = {
+                    this.descriptor_idx[0]["idx"].push(value);
+                }.bind(this))
+                response.meta.forEach(function(value) {
+                    this.descriptors[value] = {
                         "type": "nominal", 
                         "name": value, 
                         "selected": false,
                         "loaded": false
                     };
-                    parent.descriptor_idx[1]["idx"].push(value);
-                })
-            })
+                    this.descriptor_idx[1]["idx"].push(value);
+                }.bind(this))
+            }.bind(this))
 
             var barheight = 20;
             var progress = [{c: "white", s: "black", value: 1}, {c: "black", s: "black", value: 0}]
@@ -79,27 +76,27 @@ const app = function() {
             
             const streamingLoaderWorker = new Worker("/bin/streaming.js", {type: "module"})
             let first = true;
-            let redraw, addBrush;
+            let redraw, addInteractivity;
             let count = 0;
-            streamingLoaderWorker.onmessage = ({data: {payload, totalBytes, total, finished}}) => {
+            streamingLoaderWorker.onmessage = async function({data: {payload, totalBytes, total, finished}}) {
                 if(payload.length > 0) {
-                    parent.data = parent.data.concat(payload.map((d) => {
+                    this.data = this.data.concat(payload.map((d) => {
                         d.id = count++;
                         return d
                     }))
-                    parent.descriptor_data["selected"] = parent.descriptor_data["selected"].concat(
+                    this.descriptor_data["selected"] = this.descriptor_data["selected"].concat(
                         new Array(payload.length).fill(0))
 
                     if (first) {
-                        parent.reColor(populationFeature);
-                        [redraw, addBrush] = scatter(parent);
+                        await this.reColor(populationFeature);
+                        [redraw, addInteractivity] = scatter.bind(this)();
                         first = false;
                     } else {
-                        parent.updateFillColor()
-                        redraw(parent.data);
+                        this.updateFillColor()
+                        redraw(this.data);
                     }
                     
-                    progress[1].value = parent.data.length / total;
+                    progress[1].value = this.data.length / total;
                     svg
                         .selectAll("rect")
                         .data(progress)
@@ -107,45 +104,44 @@ const app = function() {
                         .duration(1000)
                         .attr("width", d => progressScale(d.value))
                 } else if (finished) {
-                    parent.quadtree = d3
+                    this.quadtree = d3
                         .quadtree()
                         .x(d => d.dim_1)
                         .y(d => d.dim_2)
-                        .addAll(parent.data);
-                    addBrush();
-                    redraw(parent.data);
-                    parent.scatterLoading = false;
-                    console.log("Finished", parent.data.length);
+                        .addAll(this.data);
+                    addInteractivity();
+                    redraw(this.data);
+                    this.scatterLoading = false;
+                    console.log("Finished", this.data.length);
                 }
-            }
+            }.bind(this);
             streamingLoaderWorker.postMessage("http://127.0.0.1:5000/feather/VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather");
         },
         brushed() {
-            const app = this;
-            search(this.quadtree, this.brushDomains).then(found => {
+            search(this.quadtree, this.brushDomains).then(function(found) {
                 if (found.length > 0) {
                     const pop = {
-                        "id": app.currPopId++,
+                        "id": d3.max(this.descriptor_data["selected"]) + 1,
                         "size": found.length,
-                        "brushDomains": app.brushDomains,
+                        "brushDomains": this.brushDomains,
                         "active": true,
                         "idx": new Array(found.length)
                     };
                     found.forEach((f, i) => {
                         pop["idx"][i] = f.id;
-                        app.descriptor_data["selected"][f.id] = pop.id;
+                        this.descriptor_data["selected"][f.id] = pop.id;
                     })
 
-                    app.reColor(populationFeature)
-                    pop["color"] = app.colorScale(pop.id);
+                    this.reColor(populationFeature)
+                    pop["color"] = this.colorScale(pop.id);
                     
-                    app.populations.push(pop);
-                    app.$nextTick(() => { 
+                    this.populations.push(pop);
+                    this.$nextTick(() => { 
                         feather.replace()
                         document.getElementById("population-"+pop.id).style.borderColor = pop.color 
                     })
                 }
-            })
+            }.bind(this))
         },
         removePopulation(popId) {
             var idx = _.findIndex(this.populations, e => e.id == popId)
@@ -162,43 +158,42 @@ const app = function() {
         activePopulationColors() {
             return _.flatMap(_.filter(this.populations, v => v.active), v => v.color)
         },
-        reColor(feature) {
+        async reColor(feature) {
             this.colorHue.selected = false;
             feature.selected = true;
 
-            const app = this;
-            this.loadFeatures([feature]).then(() => {
-                switch(feature.type) {
-                    case "nominal":
-                        const uniques = Array.from(new Set(app.descriptor_data[feature.name]))
-                        const scale = (uniques.length < 10 ?
-                            d3.scaleOrdinal().range(d3.schemeCategory10) : 
-                            d3.scaleOrdinal().range(d3.quantize(d3.interpolateOrRd, uniques.length))
-                        );
+            await this.loadFeatures([feature]);
+            switch(feature.type) {
+                case "nominal":
+                    const uniques = Array.from(new Set(this.descriptor_data[feature.name]))
+                    const scale = (uniques.length < 10 ?
+                        d3.scaleOrdinal().range(d3.schemeCategory10) : 
+                        d3.scaleOrdinal().range(d3.quantize(d3.interpolateOrRd, uniques.length+1))
+                    );
 
-                        var domain;
-                        const value = uniques[0]
-                        if (typeof value === 'string' || value instanceof String) {
-                            domain = uniques;
-                        } else {
-                            domain = d3.range(d3.max(uniques));
-                        }
+                    var domain;
+                    const value = uniques[0]
+                    if (typeof value === 'string' || value instanceof String) {
+                        domain = uniques;
+                    } else {
+                        domain = d3.range(d3.max(uniques)+1);
+                    }
 
-                        app.colorScale = scale.domain(domain);
+                    this.colorScale = scale.domain(domain);
 
-                        break;
-                    case "continuous":
-                        const arr = app.descriptor_data[feature.name];
-                        app.colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([
-                            d3.quantile(arr, 0.05),
-                            d3.quantile(arr, 0.95)
-                        ])
-                        break;
-                }
+                    break;
+                case "continuous":
+                    const arr = this.descriptor_data[feature.name];
+                    this.colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([
+                        d3.quantile(arr, 0.05),
+                        d3.quantile(arr, 0.95)
+                    ])
+                    break;
+            }
 
-                app.colorHue = feature
-                app.updateFillColor().then(() => app.redraw());
-            })
+            this.colorHue = feature
+            this.updateFillColor();
+            this.redraw();
         },
         async redraw() {
             d3.select('d3fc-group')

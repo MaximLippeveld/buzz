@@ -178,3 +178,47 @@ export const legend = function({
   
     return svg.node();
   }
+
+export const swatches = function(
+  selection,
+  scale,
+  hue,
+) {
+  const bandScale = d3.scaleBand()
+                  .domain(scale.domain())
+                  .range([0, selection.node().getBoundingClientRect().height])
+                  .paddingInner(0.1)
+                  .paddingOuter(0.1)
+
+  const uRect = selection
+    .selectAll("rect")
+    .data(scale.domain())
+  const uText = selection
+    .selectAll("text")
+    .data(scale.domain())
+
+  uRect
+    .exit()
+    .remove();
+  uText
+    .exit()
+    .remove();
+
+  uRect
+    .enter()
+    .append("rect")
+    .attr("width", 10)
+    .merge(uRect)
+    .attr("fill", d => scale(d))
+    .attr("height", bandScale.bandwidth())
+    .attr("y", d => bandScale(d))
+
+  uText
+    .enter()
+    .append("text")
+    .attr("x", 20)
+    .merge(uText)
+    .text(d => d)
+    .attr("y", d => bandScale(d)+bandScale.bandwidth())
+
+}
