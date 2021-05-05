@@ -190,12 +190,6 @@ const app = function() {
             this.brush(true);
             this.redraw();
         },
-        activePopulations() {
-            return _.map(_.filter(this.populations, v => v.active), v => v.id)
-        },
-        activePopulationColors() {
-            return _.flatMap(_.filter(this.populations, v => v.active), v => v.color)
-        },
         showPopulation() {
             this.reColor(populationFeature, true)
         },
@@ -254,7 +248,7 @@ const app = function() {
         async jsDivergence() {
             this.deleteAllowed = false;
 
-            const ids = this.activePopulations();
+            const ids = _.map(_.filter(this.populations, v => v.active), v => v.id);
             if (ids.length != 2) {
                 this.jsDivergenceError = true;
                 setTimeout(() => this.jsDivergenceError = false, 1000)
