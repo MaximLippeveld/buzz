@@ -268,7 +268,7 @@ const app = function() {
                 const features = response.data.map(value => this.descriptors[value]);
 
                 this.loadFeatures(features)
-                .then(() => histogram_d3(this, response.data))
+                .then(() => histogram_d3.bind(this)(response.data))
                 .then(() => this.deleteAllowed = true)
             })
            

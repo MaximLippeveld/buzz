@@ -3,7 +3,7 @@
 import * as d3 from 'd3';
 
 
-export const histogram_d3 = async function(app, features) {
+export const histogram_d3 = async function(features) {
 
     console.time("histogram_3d")
 
@@ -15,7 +15,9 @@ export const histogram_d3 = async function(app, features) {
       .thresholds(50);
     var xScale = d3.scaleLinear().rangeRound([padding, width-padding]);
     var yScale = d3.scaleLinear().range([height-padding, padding]);
+    const populations = this.populations.filter(pop => pop.active);
 
+    const descriptor_data = this.descriptor_data;
     const hist = function(feature, i) {
         const svg = d3.select(this);
 
@@ -26,12 +28,10 @@ export const histogram_d3 = async function(app, features) {
             .attr("text-anchor", "middle")
             .text(d => d)
 
-        const populations = app.populations.filter(pop => pop.active);
-
         const feats = {};
         var domain = null
         populations.forEach(pop => {
-            const feat = pop["idx"].map(i => app.descriptor_data[feature][i]);
+            const feat = pop["idx"].map(i => descriptor_data[feature][i]);
             const extent = d3.extent(feat)
             if (domain == null) {
                 domain = extent
@@ -85,8 +85,8 @@ export const histogram_d3 = async function(app, features) {
         .attr("width", width)
         .attr("height", height)
         .merge(join)
-        .on('click', (event , d) => app.reColor(app.descriptors[d]))
-        .each(hist)    
+        .on('click', (event , d) => this.reColor(this.descriptors[d], true))
+        .each(hist)
     
     console.timeEnd("histogram_3d")
 }
