@@ -76,6 +76,23 @@ export const scatter = function() {
             ])
             .mapping(data => data.series)
         )
+        .svgPlotArea(
+            fc.seriesSvgMulti()
+            .series([
+                fc.brush()
+                    // .xScale(xScale)
+                    // .yScale(yScale)
+                    .handleSize(10)
+                    .on("brush end", function(event) {
+                        this.brushDomains = [
+                            [event.xDomain[0], event.yDomain[0]],
+                            [event.xDomain[1], event.yDomain[1]]
+                        ];
+                        this.brushRange = event.selection;
+                    }.bind(this))
+            ])
+            .mapping(data => data.brushRange)
+        )
         .decorate(function(sel) {
             sel
                 .select('d3fc-svg.x-axis')
@@ -83,59 +100,11 @@ export const scatter = function() {
             sel
                 .select('d3fc-svg.y-axis')
                 .classed("invisible", true)
-
-        });
-
-    function redraw(data) {
-        d3.select("#chart")
-            .datum({
-                series: data,
-                brushedRange: [[0,0], [0,0]]
-            })
-            .call(chart);
-    }
-
-    function addInteractivity() {
-        chart.svgPlotArea(
-            fc.seriesSvgMulti()
-            .series([
-                fc.brush()
-                    .handleSize(10)
-                    .on("brush end", function(event) {
-                        this.brushDomains = [
-                            [event.xDomain[0], event.yDomain[0]],
-                            [event.xDomain[1], event.yDomain[1]]
-                        ]
-                    }.bind(this))
-            ])
-            .mapping(data => data.brushedRange)
-        ).decorate(function(sel) {
             
-            sel
-                .select('d3fc-svg.x-axis')
-                .classed("invisible", true)
-            sel
-                .select('d3fc-svg.y-axis')
-                .classed("invisible", true)
-
             // the brush SVG is hidden initially so that exploration is possible
-            const brushArea = sel
+            sel
                 .select('d3fc-svg.svg-plot-area')
-                .classed("hidden", true)
-
-            // the user can press 'b' to enable brushing
-            // pressing 'b' unhides the brush SVG, disabling exploration
-            function toggleBrush() {
-                brushArea.classed("hidden", !brushArea.classed("hidden"))
-                this.brushEnabled = !this.brushEnabled
-                d3.select('d3fc-group')
-                    .node()
-                    .requestRedraw();
-            }
-            toggleBrush = toggleBrush.bind(this);
-
-            d3.select("body").on("keydown.enablebrush", event => { if (event.key == "b") toggleBrush() })
-            d3.select("#brush-toggle").on("click", toggleBrush)
+                .classed("hidden", !this.brushEnabled);
 
             // setup zooming and panning
             sel
@@ -162,10 +131,19 @@ export const scatter = function() {
                         this.annotation(coord[0], coord[1], c, app, event.ctrlKey)
                     }
                 }.bind(this));
-        }.bind(this))
-    }
-    
-    redraw(this.data);
 
-    return [redraw, addInteractivity.bind(this)];
+        }.bind(this));
+        
+    function redraw() {
+        d3
+            .select("#chart")
+            .datum({
+                series: this.data,
+                brushRange: this.brushRange
+            })
+            .call(chart);
+    }
+    redraw.bind(this)();
+
+    return redraw.bind(this);
 }

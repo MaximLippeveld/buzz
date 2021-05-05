@@ -10,6 +10,7 @@ import * as _ from 'lodash';
 window._ = _
 
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
+const baseBrushRange = [[0,0], [0,0]]
 
 const app = function() {
     return {
@@ -21,12 +22,16 @@ const app = function() {
         descriptor_data: {"selected": []},
         descriptor_idx: [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}],
         scatterLoading: true,
-        brushEnabled: false,
+        brushEnabled: true,
         jsDivergenceError: false,
         deleteAllowed: true,
         colorScale: null,
         colorHue: populationFeature,
+        brushRange: baseBrushRange,
+        currentPopulation: null,
         fillColor: null,
+        redraw: null,
+        decorate: null,
         updateFillColor() {
             const selectedFill = f => webglColor(this.colorScale(f), 0.9)
             this.fillColor = fc.webglFillColor().value(selectedFill).data(this.descriptor_data[this.colorHue.name]);
@@ -76,7 +81,6 @@ const app = function() {
             
             const streamingLoaderWorker = new Worker("/bin/streaming.js", {type: "module"})
             let first = true;
-            let redraw, addInteractivity;
             let count = 0;
             streamingLoaderWorker.onmessage = async function({data: {payload, totalBytes, total, finished}}) {
                 if(payload.length > 0) {
@@ -89,11 +93,11 @@ const app = function() {
 
                     if (first) {
                         await this.reColor(populationFeature);
-                        [redraw, addInteractivity] = scatter.bind(this)();
+                        this.redraw = scatter.bind(this)();
                         first = false;
                     } else {
                         this.updateFillColor()
-                        redraw(this.data);
+                        this.redraw();
                     }
                     
                     progress[1].value = this.data.length / total;
@@ -109,8 +113,7 @@ const app = function() {
                         .x(d => d.dim_1)
                         .y(d => d.dim_2)
                         .addAll(this.data);
-                    addInteractivity();
-                    redraw(this.data);
+                    this.redraw();
                     this.scatterLoading = false;
                     console.log("Finished", this.data.length);
                 }
@@ -120,28 +123,58 @@ const app = function() {
         brushed() {
             search(this.quadtree, this.brushDomains).then(found => {
                 if (found.length > 0) {
-                    const pop = {
-                        "id": d3.max(this.descriptor_data["selected"]) + 1,
-                        "size": found.length,
-                        "brushDomains": this.brushDomains,
-                        "active": true,
-                        "idx": new Array(found.length)
-                    };
+                    var pop;
+                    if(this.currentPopulation == null) {
+                        pop = {
+                            "id": d3.max(this.descriptor_data["selected"]) + 1,
+                            "active": true
+                        };
+                        
+                        pop["color"] = this.colorScale(pop.id);
+                        
+                        this.populations.push(pop);
+                        this.$nextTick(() => { 
+                            feather.replace()
+                            document.getElementById("population-"+pop.id).style.borderColor = pop.color 
+                        })
+                    } else {
+                        pop = this.currentPopulation;
+                        this.currentPopulation = null;
+                    }
+
+                    pop["brushDomains"] = this.brushDomains;
+                    pop["brushRange"] = this.brushRange;
+                    pop["idx"] = new Array(found.length);
+                    pop["size"] = found.length;
+
                     found.forEach((f, i) => {
                         pop["idx"][i] = f.id;
                         this.descriptor_data["selected"][f.id] = pop.id;
                     })
 
-                    this.reColor(populationFeature)
-                    pop["color"] = this.colorScale(pop.id);
-                    
-                    this.populations.push(pop);
-                    this.$nextTick(() => { 
-                        feather.replace()
-                        document.getElementById("population-"+pop.id).style.borderColor = pop.color 
-                    })
+                    this.brushRange = baseBrushRange;
+                    this.reColor(populationFeature);
+                    this.redraw();
                 }
             })
+        },
+        brush(enable, event) {
+
+            // if keydown event, check if 'b' is pressed
+            if ((event) && (event.type == "keydown") && (event.code != "KeyB")) {
+                return;
+            }
+
+            d3
+                .select('d3fc-svg.svg-plot-area')
+                .classed("hidden", !enable);
+            this.brushEnabled = enable;
+
+            if (event) {
+                d3.select('d3fc-group')
+                    .node()
+                    .requestRedraw();
+            }
         },
         removePopulation(popId) {
             var idx = _.findIndex(this.populations, e => e.id == popId)
@@ -149,7 +182,13 @@ const app = function() {
                 found.forEach(f => this.descriptor_data["selected"][f.id] = 0)
             })
             this.populations.splice(idx, 1)
-            this.reColor(populationFeature)
+            this.reColor(populationFeature, true)
+        },
+        editPopulation(pop) {
+            this.currentPopulation = pop;
+            this.brushRange = pop.brushRange;
+            this.brush(true);
+            this.redraw();
         },
         activePopulations() {
             return _.map(_.filter(this.populations, v => v.active), v => v.id)
@@ -157,7 +196,10 @@ const app = function() {
         activePopulationColors() {
             return _.flatMap(_.filter(this.populations, v => v.active), v => v.color)
         },
-        async reColor(feature) {
+        showPopulation() {
+            this.reColor(populationFeature, true)
+        },
+        async reColor(feature, redraw) {
             this.colorHue.selected = false;
             feature.selected = true;
 
@@ -192,15 +234,12 @@ const app = function() {
 
             this.colorHue = feature
             this.updateFillColor();
-            this.redraw();
-        },
-        async redraw() {
-            d3.select('d3fc-group')
-                .node()
-                .requestRedraw();
-        },
-        showPopulation() {
-            this.reColor(populationFeature)
+
+            if (redraw) {
+                d3.select('d3fc-group')
+                    .node()
+                    .requestRedraw();
+            }
         },
         async loadFeatures(features) {
             features = features.filter((f) => !f.loaded)
