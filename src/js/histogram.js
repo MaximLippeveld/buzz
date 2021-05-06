@@ -75,13 +75,13 @@ export const histogram_d3 = async function(features) {
     }
 
     const join = d3.select("#visualizer")
-        .selectAll("svg")
+        .selectAll("svg.histogram")
         .data(features)
 
     join
         .enter()
         .append("svg")
-        .classed("flex-shrink-0 mr-5", true)
+        .classed("flex-shrink-0 mr-5 histogram", true)
         .attr("width", width)
         .attr("height", height)
         .merge(join)

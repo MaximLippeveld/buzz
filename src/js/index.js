@@ -1,8 +1,9 @@
 import 'alpinejs';
 import * as d3 from 'd3';
 import { scatter } from './scatter';
-import { hashCode, search, webglColor } from './util'
-import * as fc from 'd3fc'
+import { search, webglColor } from './util';
+import { progress } from './progressbar'; 
+import * as fc from 'd3fc';
 import { histogram_d3 } from './histogram';
 import feather from 'feather-icons';
 import * as _ from 'lodash';
@@ -22,6 +23,7 @@ const app = function() {
         descriptor_data: {"selected": []},
         descriptor_idx: [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}],
         scatterLoading: true,
+        visualizerLoading: false,
         brushEnabled: true,
         jsDivergenceError: false,
         deleteAllowed: true,
@@ -60,29 +62,15 @@ const app = function() {
                 }.bind(this))
             }.bind(this))
 
-            var barheight = 20;
-            var progress = [{c: "white", s: "black", value: 1}, {c: "black", s: "black", value: 0}]
-            const loadingDiv = d3.select("#loading").classed("z-50", true);
-            const width = loadingDiv.node().getBoundingClientRect().width
-            const progressScale = d3.scaleLinear().range([0, width]).domain([0, 1])
-            const svg = loadingDiv.select("svg")
-                .attr("width", width)
-                .attr("height", barheight)
-            svg
-                .selectAll("rect")
-                .data(progress)
-                .enter()
-                .append("rect")
-                .attr("width", d => progressScale(d.value))
-                .attr("height", barheight)
-                .attr("fill", d => d.c)
-                .attr("stroke", d => d.s)
-                .attr("stroke-width", 4)
-            
+            const loadingDiv = d3.select("#scatter-loading");
+            const scatterProgress = progress({el: loadingDiv, message: "Loading scatterplot...", height: 20})
+            scatterProgress.init();
+
             const streamingLoaderWorker = new Worker("/bin/streaming.js", {type: "module"})
             let first = true;
             let count = 0;
             streamingLoaderWorker.onmessage = async function({data: {payload, totalBytes, total, finished}}) {
+                scatterProgress.total = total;
                 if(payload.length > 0) {
                     this.data = this.data.concat(payload.map((d) => {
                         d.id = count++;
@@ -100,13 +88,7 @@ const app = function() {
                         this.redraw();
                     }
                     
-                    progress[1].value = this.data.length / total;
-                    svg
-                        .selectAll("rect")
-                        .data(progress)
-                        .transition()
-                        .duration(1000)
-                        .attr("width", d => progressScale(d.value))
+                    scatterProgress.update(this.data.length)
                 } else if (finished) {
                     this.quadtree = d3
                         .quadtree()
@@ -235,14 +217,16 @@ const app = function() {
                     .requestRedraw();
             }
         },
-        async loadFeatures(features) {
+        async loadFeatures(features, progress) {
             features = features.filter((f) => !f.loaded)
 
             // load all requested features in parallel
+            if(progress) progress.total = features.length;
             return Promise.allSettled(features.map(async f => {
                 const d = await d3.json("http://127.0.0.1:5000/features/get/"+f.name)
                 f.loaded = true;
                 this.descriptor_data[f.name] = d.data
+                if (progress) progress.update(1)
             }))
         },
         async jsDivergence() {
@@ -254,6 +238,17 @@ const app = function() {
                 setTimeout(() => this.jsDivergenceError = false, 1000)
                 return 
             }
+            
+            this.visualizerLoading = true;
+            var prog;
+            this.$nextTick(() => {
+                const loadingDiv = d3.select("#visualizer-loading");
+
+                prog = progress({el: loadingDiv, message: "Loading JS Divergence"})
+                if (loadingDiv.select("svg").empty()) {
+                    prog.init();
+                } 
+            })
 
             d3.json("http://127.0.0.1:5000/features/js-divergence", {
                 method:"POST",
@@ -267,8 +262,11 @@ const app = function() {
             }).then((response) => {
                 const features = response.data.map(value => this.descriptors[value]);
 
-                this.loadFeatures(features)
-                .then(() => histogram_d3.bind(this)(response.data))
+                this.loadFeatures(features, prog)
+                .then(() => { 
+                    this.visualizerLoading = false;
+                    this.$nextTick(() => histogram_d3.bind(this)(response.data))
+                })
                 .then(() => this.deleteAllowed = true)
             })
            
