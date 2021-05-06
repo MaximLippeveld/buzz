@@ -14,10 +14,7 @@
 <body x-data="app = app()" x-init="load()" class="w-full h-screen flex flex-row overflow-hidden" x-on:keydown="brush(!brushEnabled, $event)" x-on:keydown.enter="brushed()">
     <div class="w-9/12 h-full pr-8">
         <div id="chart" class="w-full h-4/6 relative">
-            <div id="loading" x-show="scatterLoading" class="absolute left-2/4 top-2/4 w-96 -mx-48 -my-24 h-48">
-                <p class="font-bold">Loading scatterplot</p>
-                <svg></svg>
-            </div>
+            <div id="scatter-loading" x-show="scatterLoading" class="absolute z-50 left-2/4 top-2/4 w-96 -mx-48 -my-24 h-48"></div>
             <template x-for="annot in annotations" :key="annot.id">
                 <div :id="'annotation-' + annot.id" class="annotation absolute  z-50 p-1 bg-gray-100 origin-top-left transform">
                     <div class="flex flex-nowrap items-center">
@@ -36,7 +33,9 @@
                 </div>
             </template>
         </div>
-        <div class="h-2/6 overflow-auto w-full flex flex-row" id="visualizer"></div>
+        <div class="h-2/6 overflow-auto w-full flex flex-row relative" id="visualizer">
+            <div id="visualizer-loading" x-show="visualizerLoading" class="absolute z-50 left-2/4 top-2/4 w-96 -mx-48 -my-24 h-48"></div>
+        </div>
     </div>
     <div id="controls" class="w-3/12 h-full flex flex-col">
         <div class="h-1/6">
