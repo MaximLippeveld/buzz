@@ -39,7 +39,11 @@
     </div>
     <div id="controls" class="w-3/12 h-full flex flex-col">
         <div class="h-1/6">
-            <div id="toggles" class="h-2/6 py-2 flex flex-row flex-wrap items-start">
+            <div class="h-2/6 p-2">
+                <p x-text="meta.name"></p>
+                <p x-text="meta.size"></p>
+            </div>
+            <div id="toggles" class="h-4/6 flex flex-row flex-wrap items-start">
                 <div class="w-1/2 pr-2 pb-2">
                     <button 
                         class="w-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" 

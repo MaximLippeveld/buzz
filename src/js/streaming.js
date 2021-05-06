@@ -33,15 +33,6 @@ const jsonChunckedParser = () => {
 
 var total;
 onmessage = async ({data: url}) => {
-
-    var meta = await fetch(url+"/meta", {
-        headers: {
-            "Content-type": "application/json; charset=UTF-8"
-        }
-    })
-    meta = await meta.json()
-    total = meta.total
-
     let totalBytes = 0;
     const jsonParser = jsonChunckedParser();
     const response = await fetch(url, {
@@ -65,7 +56,7 @@ onmessage = async ({data: url}) => {
 
                     var payload = jsonParser.parseChunk(value)
                     if (payload != null) {
-                        postMessage({payload, totalBytes, total});
+                        postMessage({payload, totalBytes});
                     }
 
                     controller.enqueue(value);
@@ -78,5 +69,5 @@ onmessage = async ({data: url}) => {
     )
 
     const data = await streamedResponse.text();
-    postMessage({ payload: [], totalBytes: data.length, total: total, finished: true });
+    postMessage({ payload: [], totalBytes: data.length, finished: true });
 }

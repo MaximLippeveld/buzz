@@ -12,9 +12,11 @@ window._ = _
 
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
 const baseBrushRange = [[0,0], [0,0]]
+const url = "http://127.0.0.1:5000/feather/VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather";
 
 const app = function() {
     return {
+        meta: {size: 0, name: ""},
         data: [],
         currAnnotId: 1,
         populations: [],
@@ -62,45 +64,56 @@ const app = function() {
                 }.bind(this))
             }.bind(this))
 
-            const loadingDiv = d3.select("#scatter-loading");
-            const scatterProgress = progress({el: loadingDiv, message: "Loading scatterplot...", height: 20})
-            scatterProgress.init();
 
-            const streamingLoaderWorker = new Worker("/bin/streaming.js", {type: "module"})
-            let first = true;
-            let count = 0;
-            streamingLoaderWorker.onmessage = async function({data: {payload, totalBytes, total, finished}}) {
-                scatterProgress.total = total;
-                if(payload.length > 0) {
-                    this.data = this.data.concat(payload.map((d) => {
-                        d.id = count++;
-                        return d
-                    }))
-                    this.descriptor_data["selected"] = this.descriptor_data["selected"].concat(
-                        new Array(payload.length).fill(0))
-
-                    if (first) {
-                        await this.reColor(populationFeature);
-                        this.redraw = scatter.bind(this)();
-                        first = false;
-                    } else {
-                        this.updateFillColor()
-                        this.redraw();
-                    }
-                    
-                    scatterProgress.update(this.data.length)
-                } else if (finished) {
-                    this.quadtree = d3
-                        .quadtree()
-                        .x(d => d.dim_1)
-                        .y(d => d.dim_2)
-                        .addAll(this.data);
-                    this.redraw();
-                    this.scatterLoading = false;
-                    console.log("Finished", this.data.length);
+            fetch(url+"/meta", {
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
                 }
-            }.bind(this);
-            streamingLoaderWorker.postMessage("http://127.0.0.1:5000/feather/VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather");
+            })
+            .then(response => response.json())
+            .then(meta => {
+                this.meta = meta;
+
+                const loadingDiv = d3.select("#scatter-loading");
+                const scatterProgress = progress({el: loadingDiv, message: "Loading scatterplot...", height: 20})
+                scatterProgress.init();
+                scatterProgress.total = meta.size;
+
+                const streamingLoaderWorker = new Worker("/bin/streaming.js", {type: "module"})
+                let first = true;
+                let count = 0;
+                streamingLoaderWorker.onmessage = async function({data: {payload, totalBytes, finished}}) {
+                    if(payload.length > 0) {
+                        this.data = this.data.concat(payload.map((d) => {
+                            d.id = count++;
+                            return d
+                        }))
+                        this.descriptor_data["selected"] = this.descriptor_data["selected"].concat(
+                            new Array(payload.length).fill(0))
+
+                        if (first) {
+                            await this.reColor(populationFeature);
+                            this.redraw = scatter.bind(this)();
+                            first = false;
+                        } else {
+                            this.updateFillColor()
+                            this.redraw();
+                        }
+                        
+                        scatterProgress.update(this.data.length)
+                    } else if (finished) {
+                        this.quadtree = d3
+                            .quadtree()
+                            .x(d => d.dim_1)
+                            .y(d => d.dim_2)
+                            .addAll(this.data);
+                        this.redraw();
+                        this.scatterLoading = false;
+                        console.log("Finished", this.data.length);
+                    }
+                }.bind(this);
+                streamingLoaderWorker.postMessage(url);
+            })
         },
         brushed() {
             search(this.quadtree, this.brushDomains).then(found => {
