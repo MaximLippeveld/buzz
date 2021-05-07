@@ -9,7 +9,7 @@ module.exports = {
     "dist": {url: "/", static: true, resolve: false}
   },
   plugins: [
-    /* ... */
+    ['@snowpack/plugin-webpack', {}]
   ],
   packageOptions: {
     /* ... */

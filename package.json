@@ -29,22 +29,22 @@
   "dependencies": {
     "@d3fc/d3fc-webgl": "^3.1.0",
     "alpinejs": "^2.8.1",
-    "d3": "^6.5.0",
-    "d3-brush": "^2.1.0",
-    "d3-svg-annotation": "^2.5.1",
+    "d3": "^6.7.0",
     "d3fc": "^15.1.2",
     "d3fc-brush": "^1.0.1",
     "feather-icons": "^4.28.0",
     "lodash": "^4.17.21",
-    "tailwindcss": "^2.0.3",
-    "vega-embed": "^6.17.0"
+    "tailwindcss": "^2.0.3"
   },
   "devDependencies": {
+    "@snowpack/plugin-webpack": "^2.3.1",
     "autoprefixer": "^10.2.4",
     "clean-css-cli": "^4.3.0",
     "cross-env": "^7.0.3",
     "http-server": "^0.12.3",
     "node-sass": "^5.0.0",
+    "nw": "^0.53.0",
+    "nw-builder": "^3.5.7",
     "postcss": "^8.2.7",
     "postcss-cli": "^8.3.1",
     "postcss-scss": "^3.0.4",
