@@ -6,7 +6,7 @@ module.exports = {
   exclude: ['**/node_modules/**/*'],
   mount: {
     "src/js": {url: "/bin"},
-    "dist": {url: "/", static: true, resolve: false}
+    "public": {url: "/", static: true, resolve: false}
   },
   plugins: [
     ['@snowpack/plugin-webpack', {}]
@@ -18,6 +18,6 @@ module.exports = {
     /* ... */
   },
   buildOptions: {
-    /* ... */
+    out: "dist"
   },
 };
