@@ -2,7 +2,7 @@
   "name": "buzz",
   "version": "0.0.1",
   "description": "Interactive visualization tool for dimensionality reduced imaging data.",
-  "main": "http://localhost:8080",
+  "main": "http://localhost:8080/index.html",
   "node-remote": "http://localhost:8080",
   "chromium-args": "--enable-spell-checking --remote-debugging-port=9222",
   "scripts": {
@@ -38,6 +38,7 @@
   "dependencies": {
     "@d3fc/d3fc-webgl": "^3.1.0",
     "alpinejs": "^2.8.1",
+    "csv-batch": "^2.0.2",
     "d3": "^6.7.0",
     "d3fc": "^15.1.2",
     "d3fc-brush": "^1.0.1",

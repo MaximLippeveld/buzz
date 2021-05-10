@@ -22,7 +22,8 @@ const app = function() {
         populations: [],
         annotations: [],
         descriptors: {},
-        descriptor_data: {"selected": []},
+        header: null,
+        descriptor_data: [],
         descriptor_idx: [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}],
         scatterLoading: true,
         visualizerLoading: false,
@@ -37,91 +38,91 @@ const app = function() {
         redraw: null,
         decorate: null,
         updateFillColor() {
-            const selectedFill = f => webglColor(this.colorScale(f), 0.9)
-            this.fillColor = fc.webglFillColor().value(selectedFill).data(this.descriptor_data[this.colorHue.name]);
+            const idx = this.header.indexOf(this.colorHue.name);
+            this.fillColor = fc.webglFillColor().value(r => webglColor(this.colorScale(r[idx]), 0.9)).data(this.descriptor_data);
         },
         load() {
-            feather.replace()
 
-            d3.json("http://127.0.0.1:5000/features/list").then(function(response) {
-                response.features.forEach(function(value) {
-                    this.descriptors[value] = {
-                        "type": "continuous",
-                        "name": value, 
-                        "selected": false,
-                        "loaded": false
-                    };
-                    this.descriptor_idx[0]["idx"].push(value);
-                }.bind(this))
-                response.meta.forEach(function(value) {
-                    this.descriptors[value] = {
-                        "type": "nominal", 
-                        "name": value, 
-                        "selected": false,
-                        "loaded": false
-                    };
-                    this.descriptor_idx[1]["idx"].push(value);
-                }.bind(this))
-            }.bind(this))
-
-
-            fetch(url+"/meta", {
-                headers: {
-                    "Content-type": "application/json; charset=UTF-8"
-                }
-            })
-            .then(response => response.json())
-            .then(meta => {
-                this.meta = meta;
-
-                const loadingDiv = d3.select("#scatter-loading");
-                const scatterProgress = progress({el: loadingDiv, message: "Loading scatterplot...", height: 20})
-                scatterProgress.init();
-                scatterProgress.total = meta.size;
-
-                const streamingLoaderWorker = new Worker("/bin/streaming.js", {type: "module"})
-                let first = true;
-                let count = 0;
-                streamingLoaderWorker.onmessage = async function({data: {payload, totalBytes, finished}}) {
-                    if(payload.length > 0) {
-                        this.data = this.data.concat(payload.map((d) => {
-                            d.id = count++;
-                            return d
-                        }))
-                        this.descriptor_data["selected"] = this.descriptor_data["selected"].concat(
-                            new Array(payload.length).fill(0))
-
-                        if (first) {
-                            await this.reColor(populationFeature);
-                            this.redraw = scatter.bind(this)();
-                            first = false;
-                        } else {
-                            this.updateFillColor()
-                            this.redraw();
-                        }
-                        
-                        scatterProgress.update(this.data.length)
-                    } else if (finished) {
-                        this.quadtree = d3
-                            .quadtree()
-                            .x(d => d.dim_1)
-                            .y(d => d.dim_2)
-                            .addAll(this.data);
-                        this.redraw();
-                        this.scatterLoading = false;
-                        console.log("Finished", this.data.length);
+            function headers(features) {
+                features.forEach(value => {
+                    if (value.startsWith("feat")) {
+                        this.descriptors[value] = {
+                            "type": "continuous",
+                            "name": value, 
+                            "selected": false,
+                            "loaded": false
+                        };
+                        this.descriptor_idx[0]["idx"].push(value);
+                    } else {
+                        this.descriptors[value] = {
+                            "type": "nominal", 
+                            "name": value, 
+                            "selected": false,
+                            "loaded": false
+                        };
+                        this.descriptor_idx[1]["idx"].push(value);
                     }
-                }.bind(this);
-                streamingLoaderWorker.postMessage(url);
+                })
+            }
+                
+            const loadingDiv = d3.select("#scatter-loading");
+            const backend = require("src/js/app.js");
+            var first = true;
+            var count = 0;
+            backend.loadData("test", async batch => {
+                console.log(count);
+                
+                if (first) {
+                    first = false;
+                    headers.bind(this)(batch[0])
+                    this.header = batch[0];
+                    this.header.push("selected")
+
+                    // remove first row
+                    batch.splice(0, 1);
+                            
+                    // await this.reColor(populationFeature);
+                    // this.redraw = scatter.bind(this)();
+                } else {
+                    // this.updateFillColor()
+                    // this.redraw();
+                }
+                
+                var d = new Array(batch.length);
+                for(let i = 0; i<d.length; i++) {
+                    batch[i].push(0);
+                    d[i] = {
+                        id: count++,
+                        dim_1: batch[i][this.header.indexOf("feat_umap_0")],
+                        dim_2: batch[i][this.header.indexOf("feat_umap_1")]
+                    }
+                }
+                this.data = this.data.concat(d)
+                this.descriptor_data = this.descriptor_data.concat(batch)
             })
+            .then(async () => { 
+                this.quadtree = d3
+                    .quadtree()
+                    .x(d => d.dim_1)
+                    .y(d => d.dim_2)
+                    .addAll(this.data);
+                await this.reColor(populationFeature);
+                this.redraw = scatter.bind(this)();
+                // this.redraw();
+                this.scatterLoading = false;
+                console.log("Finished", this.data.length);
+            });
+
+            feather.replace()
         },
         brushed() {
             search(this.quadtree, this.brushDomains).then(found => {
                 if (found.length > 0) {
                     var pop;
                     if(this.currentPopulation == null) {
+                        const id = this.populations.length == 0 ? 1 : _.maxBy(this.populations, "id").id + 1;
                         pop = {
-                            "id": d3.max(this.descriptor_data["selected"]) + 1,
+                            "id": id,
                             "active": true
                         };
                         
@@ -142,9 +143,10 @@ const app = function() {
                     pop["idx"] = new Array(found.length);
                     pop["size"] = found.length;
 
+                    var idx = this.header.indexOf("selected");
                     found.forEach((f, i) => {
                         pop["idx"][i] = f.id;
-                        this.descriptor_data["selected"][f.id] = pop.id;
+                        this.descriptor_data[f.id][idx] = pop.id;
                     })
 
                     this.brushRange = baseBrushRange;
@@ -172,11 +174,12 @@ const app = function() {
             }
         },
         removePopulation(popId) {
-            var idx = _.findIndex(this.populations, e => e.id == popId)
-            search(this.quadtree, this.populations[idx].brushDomains).then(found => {
-                found.forEach(f => this.descriptor_data["selected"][f.id] = 0)
+            var i = _.findIndex(this.populations, e => e.id == popId)
+            var j = this.header.indexOf("selected");
+            search(this.quadtree, this.populations[i].brushDomains).then(found => {
+                found.forEach(f => this.descriptor_data[f.id][j] = 0)
             })
-            this.populations.splice(idx, 1)
+            this.populations.splice(i, 1)
             this.reColor(populationFeature, true)
         },
         editPopulation(pop) {
@@ -192,10 +195,13 @@ const app = function() {
             this.colorHue.selected = false;
             feature.selected = true;
 
+            const idx = this.header.indexOf(feature.name)
             await this.loadFeatures([feature]);
             switch(feature.type) {
                 case "nominal":
-                    const uniques = Array.from(new Set(this.descriptor_data[feature.name]))
+                    const s = new Set()
+                    this.descriptor_data.forEach(r => s.add(r[idx]))
+                    const uniques = Array.from(s);
                     const scale = (uniques.length < 10 ?
                         d3.scaleOrdinal().range(d3.schemeCategory10) : 
                         d3.scaleOrdinal().range(d3.quantize(d3.interpolateOrRd, uniques.length+1))
@@ -213,7 +219,7 @@ const app = function() {
 
                     break;
                 case "continuous":
-                    const arr = this.descriptor_data[feature.name];
+                    const arr = this.descriptor_data.map(r => r[idx]);
                     this.colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([
                         d3.quantile(arr, 0.05),
                         d3.quantile(arr, 0.95)
