@@ -73,20 +73,13 @@ const app = function() {
                 console.log(count);
                 
                 if (first) {
-                    first = false;
                     headers.bind(this)(batch[0])
                     this.header = batch[0];
                     this.header.push("selected")
 
                     // remove first row
                     batch.splice(0, 1);
-                            
-                    // await this.reColor(populationFeature);
-                    // this.redraw = scatter.bind(this)();
-                } else {
-                    // this.updateFillColor()
-                    // this.redraw();
-                }
+                }            
                 
                 var d = new Array(batch.length);
                 for(let i = 0; i<d.length; i++) {
@@ -99,6 +92,15 @@ const app = function() {
                 }
                 this.data = this.data.concat(d)
                 this.descriptor_data = this.descriptor_data.concat(batch)
+                    
+                if(first) {
+                    await this.reColor(populationFeature);
+                    this.redraw = scatter.bind(this)();
+                    first = false;
+                } else {
+                    this.updateFillColor()
+                    this.redraw();
+                }
             })
             .then(async () => { 
                 this.quadtree = d3
@@ -106,9 +108,8 @@ const app = function() {
                     .x(d => d.dim_1)
                     .y(d => d.dim_2)
                     .addAll(this.data);
-                await this.reColor(populationFeature);
-                this.redraw = scatter.bind(this)();
-                // this.redraw();
+                this.updateFillColor()
+                this.redraw();
                 this.scatterLoading = false;
                 console.log("Finished", this.data.length);
             });
