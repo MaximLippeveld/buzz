@@ -2,14 +2,15 @@ import 'alpinejs';
 import * as d3 from 'd3';
 import { scatter } from './scatter';
 import { search, webglColor } from './util';
-import { progress } from './progressbar'; 
 import * as fc from 'd3fc';
 import { histogram_d3 } from './histogram';
 import feather from 'feather-icons';
 import * as _ from 'lodash';
+            
 
 window._ = _
 
+const backend = require("src/js/app.js");
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
 const baseBrushRange = [[0,0], [0,0]]
 const url = "http://127.0.0.1:5000/feather/VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather";
@@ -27,7 +28,7 @@ const app = function() {
         descriptor_idx: [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}],
         scatterLoading: true,
         visualizerLoading: false,
-        brushEnabled: true,
+        brushEnabled: false,
         jsDivergenceError: false,
         deleteAllowed: true,
         colorScale: null,
@@ -64,9 +65,8 @@ const app = function() {
                     }
                 })
             }
-                
-            const loadingDiv = d3.select("#scatter-loading");
-            const backend = require("src/js/app.js");
+            
+            this.scatterLoading = true;
             var first = true;
             var count = 0;
             backend.loadData("test", async batch => {
@@ -111,6 +111,7 @@ const app = function() {
                 this.updateFillColor()
                 this.redraw();
                 this.scatterLoading = false;
+                this.descriptors.forEach(d => d.loaded=true);
                 console.log("Finished", this.data.length);
             });
 
@@ -250,45 +251,41 @@ const app = function() {
             }))
         },
         async jsDivergence() {
-            this.deleteAllowed = false;
+            // this.deleteAllowed = false;
 
-            const ids = _.map(_.filter(this.populations, v => v.active), v => v.id);
-            if (ids.length != 2) {
-                this.jsDivergenceError = true;
-                setTimeout(() => this.jsDivergenceError = false, 1000)
-                return 
-            }
+            // const ids = _.map(_.filter(this.populations, v => v.active), v => v.id);
+            // if (ids.length != 2) {
+            //     this.jsDivergenceError = true;
+            //     setTimeout(() => this.jsDivergenceError = false, 1000)
+            //     return 
+            // }
             
             this.visualizerLoading = true;
-            var prog;
-            this.$nextTick(() => {
-                const loadingDiv = d3.select("#visualizer-loading");
 
-                prog = progress({el: loadingDiv, message: "Loading JS Divergence"})
-                if (loadingDiv.select("svg").empty()) {
-                    prog.init();
-                } 
-            })
+            backend.test(this.descriptor_data);
 
-            d3.json("http://127.0.0.1:5000/features/js-divergence", {
-                method:"POST",
-                body: JSON.stringify({
-                    populations: this.descriptor_data["selected"],
-                    selected: ids 
-                }),
-                headers: {
-                    "Content-type": "application/json; charset=UTF-8"
-                }
-            }).then((response) => {
-                const features = response.data.map(value => this.descriptors[value]);
+            this.visualizerLoading = false;
+            
 
-                this.loadFeatures(features, prog)
-                .then(() => { 
-                    this.visualizerLoading = false;
-                    this.$nextTick(() => histogram_d3.bind(this)(response.data))
-                })
-                .then(() => this.deleteAllowed = true)
-            })
+            // d3.json("http://127.0.0.1:5000/features/js-divergence", {
+            //     method:"POST",
+            //     body: JSON.stringify({
+            //         populations: this.descriptor_data["selected"],
+            //         selected: ids 
+            //     }),
+            //     headers: {
+            //         "Content-type": "application/json; charset=UTF-8"
+            //     }
+            // }).then((response) => {
+            //     const features = response.data.map(value => this.descriptors[value]);
+
+            //     this.loadFeatures(features, prog)
+            //     .then(() => { 
+            //         this.visualizerLoading = false;
+            //         this.$nextTick(() => histogram_d3.bind(this)(response.data))
+            //     })
+            //     .then(() => this.deleteAllowed = true)
+            // })
            
         },
         selectedFeatures() {
