@@ -1,0 +1,94 @@
+<!doctype html>
+
+<html>
+<head>
+    <meta charset = "utf-8"/>
+
+    <title>Buzz</title>
+    <meta name="description" content=""/>
+    <meta name="author" content="Maxim Lippeveld"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body x-data="app = app()" x-init="load()" class="w-full h-screen flex flex-row overflow-hidden" x-on:keydown="brush(!brushEnabled, $event)" x-on:keydown.enter="brushed()">
+    <div class="w-9/12 h-full pr-8">
+        <div id="chart" class="w-full h-4/6 relative">
+            <div id="scatter-loading" x-show="scatterLoading" class="absolute z-50 left-2/4 top-2/4 w-96 -mx-48 -my-24 h-48"></div>
+            <template x-for="annot in annotations" :key="annot.id">
+                <div :id="'annotation-' + annot.id" class="annotation absolute  z-50 p-1 bg-gray-100 origin-top-left transform">
+                    <div class="flex flex-nowrap items-center">
+                        <div class="cursor-pointer" x-on:click="cycleChannel(annot.width, annot.channels, annot.id, $event)"><i
+                                data-feather="chevron-left"></i></div>
+                        <div :id="'wrap-' + annot.id" class="overflow-hidden">
+                            <div :id="'im-' + annot.id" class="flex flex-nowrap flex-row" style="margin-left: 0px;">
+                                <template x-for="image in annot.images" :key="image">
+                                    <img :src="image" />
+                                </template>
+                            </div>
+                        </div>
+                        <div class="cursor-pointer" x-on:click="cycleChannel(-annot.width, annot.channels, annot.id, $event)"><i
+                                data-feather="chevron-right"></i></div>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <div class="h-2/6 overflow-auto w-full flex flex-row relative" id="visualizer">
+            <div id="visualizer-loading" x-show="visualizerLoading" class="absolute z-50 left-2/4 top-2/4 w-96 -mx-48 -my-24 h-48"></div>
+        </div>
+    </div>
+    <div id="controls" class="w-3/12 h-full flex flex-col">
+        <div class="h-1/6">
+            <div class="h-2/6 p-2">
+                <p x-text="meta.name"></p>
+                <p x-text="meta.size"></p>
+            </div>
+            <div id="toggles" class="h-4/6 flex flex-row flex-wrap items-start">
+                <div class="w-1/2 h-1/2 pr-2 pb-2">
+                    <button 
+                        class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" 
+                        @click="brush(!brushEnabled, $event)">
+                        <i x-show="!brushEnabled" class="" data-feather="toggle-left"></i>
+                        <i x-show="brushEnabled" class="" data-feather="toggle-right"></i>
+                        <span class="pl-2">Enable brush</span>
+                    </button>
+                </div>
+                <div class="w-1/2 h-1/2 pr-2 pb-2"><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="annotations = []"><i class="" data-feather="x-square"></i><span class="pl-2">Close annotations</span></button></div>
+                <div class="w-1/2 h-1/2 pr-2 pb-2"><button :class="{'bg-red-300': jsDivergenceError }" class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="jsDivergence()"><i class="" data-feather="cpu"></i><span class="pl-2">JS divergence</span></button></div>
+                <div class="w-1/2 h-1/2 pr-2 pb-2"><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="showPopulation()"><i class="" data-feather="aperture"></i><span class="pl-2">Show populations</span></button></div>
+            </div>
+        </div>
+        <div id="populations" class="h-1/6 overflow-auto">
+            <template x-for="(pop, index, collection) in populations" :key="pop.id">
+                <div class="w-full flex flex-row items-center text-left mb-1 border-l-4" :id="'population-' + pop.id">
+                    <div class="population cursor-pointer flex-grow" :class="{'font-bold': pop.active}" @click="pop.active=!pop.active">
+                        <p class="pl-1">Population <span x-text="pop.id"></span> - (size: <span x-text="pop.size"></span>)</p>
+                    </div>
+                    <div class="flex flex-row">
+                        <button x-on:click="if (deleteAllowed) removePopulation(pop.id)" :class="{ 'active:text-red-300': !deleteAllowed }"><i data-feather="trash-2"></i></button>
+                        <button x-on:click="if (deleteAllowed) editPopulation(pop)" :class="{ 'active:text-red-300': !deleteAllowed }"><i data-feather="edit-2"></i></button>
+                    </div> 
+                </div>
+            </template>
+        </div>
+        <div id="legend" class="h-1/6"><svg></svg></div>
+        <div id="descriptors" class="h-3/6 flex flex-col">
+            <template x-for="item in descriptor_idx" :key="item.name">
+                <div class="h-1/2 pb-1 flex flex-col">
+                    <h1 class="flex-shrink-0 capitalize font-bold" x-text="item.name"></h1>
+                    <ul class="overflow-auto flex-auto">
+                        <template x-for="idx in item.idx" :key="idx">
+                            <li 
+                                @click="reColor(descriptors[idx], true)" 
+                                class="cursor-pointer" 
+                                :class="{'font-bold': descriptors[idx].selected, 'opacity-50': !descriptors[idx].loaded}" 
+                                x-text="descriptors[idx].name"></li>
+                        </template>
+                    </ul>
+                </div>
+            </template>
+        </div>
+    </div>
+    <script type="module" src="/bin/index.js"></script>
+</body>
+</html>
