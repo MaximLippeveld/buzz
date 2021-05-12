@@ -214,6 +214,7 @@ const app = function() {
                     .map(i => this.descriptors[i].name)
                 );
                 this.visualizerLoading = false;
+                this.deleteAllowed = true;
             })
         },
         selectedFeatures() {

@@ -1,6 +1,7 @@
 const csvBatch = require("csv-batch");
 const fs = require("fs");
 const d3 = require("d3");
+const papa = require("papaparse");
 const _ = require("lodash");
 
 // const f = "/data/Experiment_data/weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/c8ba196c-0b22-4489-9f9c-1242f68dd7a5.csv"
@@ -41,46 +42,51 @@ exports.loadData = async function(csv) {
     count = 0;
     first = true;
 
-    await csvBatch(stream, {
-        batch: true,
-        batchSize: 50000,
-        header: false,
-        batchExecution: async batch => {
+    await new Promise((resolve, reject) => {
+        papa.parse(stream, {
+            header: false,
+            dynamicTyping: true,
+            complete: (results, file) => {
 
-            console.time("batch")
-            
-            if (first) {
-                [descriptors, descriptor_idx] = headers(batch[0]);
-                header = batch[0];
-                for(let i = 0; i<header.length; i++) descriptor_data[header[i]] = [];
+                var batch = results.data;
 
-                // remove first row
-                batch.splice(0, 1);
+                console.time("batch")
                 
-                first = false;
-            }
+                if (first) {
+                    [descriptors, descriptor_idx] = headers(batch[0]);
+                    header = batch[0];
+                    for(let i = 0; i<header.length; i++) descriptor_data[header[i]] = [];
 
-            for (let i = 0; i<header.length; i++) {
-                descriptor_data[header[i]].length += batch.length;
-            }
+                    // remove first row
+                    batch.splice(0, 1);
+                    
+                    first = false;
+                }
 
-            const l = data.length;
-            data.length += batch.length;
-            const idxDim1 = header.indexOf("feat_umap_0");
-            const idxDim2 = header.indexOf("feat_umap_1");
-            for(let i = 0; i<batch.length; i++) {
-                data[l+i] = {
-                    id: count++,
-                    dim_1: batch[i][idxDim1],
-                    dim_2: batch[i][idxDim2]
+                for (let i = 0; i<header.length; i++) {
+                    descriptor_data[header[i]].length += batch.length;
                 }
-                for (let j = 0; j<batch[i].length; j++) {
-                    descriptor_data[header[j]][l+i] = batch[i][j];
+
+                const l = data.length;
+                data.length += batch.length;
+                const idxDim1 = header.indexOf("feat_umap_0");
+                const idxDim2 = header.indexOf("feat_umap_1");
+                for(let i = 0; i<batch.length; i++) {
+                    data[l+i] = {
+                        id: count++,
+                        dim_1: batch[i][idxDim1],
+                        dim_2: batch[i][idxDim2]
+                    }
+                    for (let j = 0; j<batch[i].length; j++) {
+                        descriptor_data[header[j]][l+i] = batch[i][j];
+                    }
                 }
+                
+                console.timeEnd("batch");
+
+                resolve();
             }
-            
-            console.timeEnd("batch")
-        }
+        })
     })
 
     return [header, descriptor_data, data, descriptor_idx, descriptors];

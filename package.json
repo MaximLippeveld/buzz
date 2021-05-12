@@ -38,12 +38,12 @@
   "dependencies": {
     "@d3fc/d3fc-webgl": "^3.1.0",
     "alpinejs": "^2.8.1",
-    "csv-batch": "^2.0.2",
     "d3": "^6.7.0",
     "d3fc": "^15.1.2",
     "d3fc-brush": "^1.0.1",
     "feather-icons": "^4.28.0",
     "lodash": "^4.17.21",
+    "papaparse": "^5.3.0",
     "tailwindcss": "^2.0.3"
   },
   "devDependencies": {

@@ -69,8 +69,8 @@
                         <p class="pl-1">Population <span x-text="pop.id"></span> - (size: <span x-text="pop.size"></span>)</p>
                     </div>
                     <div class="flex flex-row">
-                        <button x-on:click="if (deleteAllowed) removePopulation(pop.id)" :class="{ 'active:text-red-300': !deleteAllowed }"><i data-feather="trash-2"></i></button>
-                        <button x-on:click="if (deleteAllowed) editPopulation(pop)" :class="{ 'active:text-red-300': !deleteAllowed }"><i data-feather="edit-2"></i></button>
+                        <button x-on:click="if (deleteAllowed) removePopulation(pop.id)" :class="{ 'cursor-not-allowed': !deleteAllowed }"><i data-feather="trash-2"></i></button>
+                        <button x-on:click="if (deleteAllowed) editPopulation(pop)" :class="{ 'cursor-not-allowed': !deleteAllowed }"><i data-feather="edit-2"></i></button>
                     </div> 
                 </div>
             </template>
