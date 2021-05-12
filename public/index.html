@@ -11,7 +11,7 @@
 
     <link rel="stylesheet" href="/css/styles.css" />
 </head>
-<body x-data="app = app()" x-init="load()" class="w-full h-screen flex flex-row overflow-hidden" x-on:keydown="brush(!brushEnabled, $event)" x-on:keydown.enter="brushed()">
+<body x-data="app = app()" x-init="load()" class="w-full h-screen flex flex-row overflow-hidden relative" x-on:keydown="brush(!brushEnabled, $event)" x-on:keydown.enter="brushed()">
     <div class="w-9/12 h-full">
         <div id="chart" class="w-full h-4/6 relative">
             <div id="scatter-loading" x-show="scatterLoading" class="absolute z-50 left-2/4 top-2/4 w-48 -mx-24 -my-12 h-24 font-bold">
@@ -58,7 +58,7 @@
                     </button>
                 </div>
                 <div class="w-1/2 h-1/2 pr-2 pb-2"><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="annotations = []"><i class="" data-feather="x-square"></i><span class="pl-2">Close annotations</span></button></div>
-                <div class="w-1/2 h-1/2 pr-2 pb-2"><button :class="{'bg-red-300': jsDivergenceError }" class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="jsDivergence()"><i class="" data-feather="cpu"></i><span class="pl-2">Histograms</span></button></div>
+                <div class="w-1/2 h-1/2 pr-2 pb-2"><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="selectFeatures()"><i class="" data-feather="cpu"></i><span class="pl-2">Histograms</span></button></div>
                 <div class="w-1/2 h-1/2 pr-2 pb-2"><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="showPopulation()"><i class="" data-feather="aperture"></i><span class="pl-2">Show populations</span></button></div>
             </div>
         </div>
@@ -91,6 +91,23 @@
                     </ul>
                 </div>
             </template>
+        </div>
+    </div>
+    <div class="w-full h-full p-5 absolute bg-black bg-opacity-70" x-show="showFeaturesModal">
+        <div id="descriptors" @click.away="showFeaturesModal = false" class="w-1/4 p-5 h-full bg-white mx-auto flex flex-col">
+            <p class="font-bold mb-5 text-center">
+                Select features
+            </p>
+            <ul class="overflow-auto mb-5">
+                <template x-for="idx in descriptor_idx[0].idx" :key="idx">
+                    <li 
+                        @click="descriptors[idx].histogram = !descriptors[idx].histogram;" 
+                        class="cursor-pointer" 
+                        :class="{'font-bold': descriptors[idx].histogram, 'opacity-50': !descriptors[idx].loaded}" 
+                        x-text="descriptors[idx].name"></li>
+                </template>
+            </ul>
+            <button class="p-5 bg-gray-200 active:bg-gray-300 rounded" @click="showFeaturesModal = false; histograms()">Show histograms</button>
         </div>
     </div>
     <script type="module" src="/bin/index.js"></script>

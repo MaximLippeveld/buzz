@@ -22,10 +22,6 @@ const app = function() {
         currAnnotId: 1,
         populations: [],
         annotations: [],
-        descriptors: {},
-        header: null,
-        descriptor_data: [],
-        descriptor_idx: [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}],
         scatterLoading: true,
         visualizerLoading: false,
         brushEnabled: false,
@@ -38,82 +34,41 @@ const app = function() {
         fillColor: null,
         redraw: null,
         decorate: null,
+        descriptor_idx: [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}],
+        histogramFeatures: [],
+        showFeaturesModal: false,
         updateFillColor() {
-            const idx = this.header.indexOf(this.colorHue.name);
-            this.fillColor = fc.webglFillColor().value(r => webglColor(this.colorScale(r[idx]), 0.9)).data(this.descriptor_data);
+            this.fillColor = fc
+                .webglFillColor()
+                .value(r => webglColor(this.colorScale(r), 0.9))
+                .data(this.descriptor_data[this.colorHue.name]);
         },
-        load() {
+        async load() {
 
-            function headers(features) {
-                features.forEach(value => {
-                    if (value.startsWith("feat")) {
-                        this.descriptors[value] = {
-                            "type": "continuous",
-                            "name": value, 
-                            "selected": false,
-                            "loaded": false
-                        };
-                        this.descriptor_idx[0]["idx"].push(value);
-                    } else {
-                        this.descriptors[value] = {
-                            "type": "nominal", 
-                            "name": value, 
-                            "selected": false,
-                            "loaded": false
-                        };
-                        this.descriptor_idx[1]["idx"].push(value);
-                    }
-                })
-            }
-            
             this.scatterLoading = true;
-            var first = true;
-            var count = 0;
-            backend.loadData("test", async batch => {
-                console.log(count);
-                
-                if (first) {
-                    headers.bind(this)(batch[0])
-                    this.header = batch[0];
-                    this.header.push("selected")
 
-                    // remove first row
-                    batch.splice(0, 1);
-                }            
-                
-                var d = new Array(batch.length);
-                for(let i = 0; i<d.length; i++) {
-                    batch[i].push(0);
-                    d[i] = {
-                        id: count++,
-                        dim_1: batch[i][this.header.indexOf("feat_umap_0")],
-                        dim_2: batch[i][this.header.indexOf("feat_umap_1")]
-                    }
-                }
-                this.data = this.data.concat(d)
-                this.descriptor_data = this.descriptor_data.concat(batch)
-                    
-                if(first) {
-                    await this.reColor(populationFeature);
-                    this.redraw = scatter.bind(this)();
-                    first = false;
-                } else {
-                    this.updateFillColor()
-                    this.redraw();
-                }
-            })
-            .then(async () => { 
-                this.quadtree = d3
-                    .quadtree()
-                    .x(d => d.dim_1)
-                    .y(d => d.dim_2)
-                    .addAll(this.data);
-                this.updateFillColor()
-                this.redraw();
-                this.scatterLoading = false;
-                this.descriptors.forEach(d => d.loaded=true);
-                console.log("Finished", this.data.length);
-            });
+            console.time("data");
+            [
+                this.header, 
+                this.descriptor_data, 
+                this.data, 
+                this.descriptor_idx, 
+                this.descriptors
+            ] = await backend.loadData("test");
+            _.forEach(this.descriptors, (d, k) => d.loaded=true);
+            console.timeEnd("data");
+            
+            this.quadtree = d3
+                .quadtree()
+                .x(d => d.dim_1)
+                .y(d => d.dim_2)
+                .addAll(this.data);
+
+            this.descriptor_data["selected"] = new Array(this.data.length).fill(0);
+            await this.reColor(populationFeature);
+            this.redraw = scatter.bind(this)();
+            this.scatterLoading = false;
+            console.log("Finished", this.data.length);
 
             feather.replace()
         },
@@ -145,10 +100,9 @@ const app = function() {
                     pop["idx"] = new Array(found.length);
                     pop["size"] = found.length;
 
-                    var idx = this.header.indexOf("selected");
                     found.forEach((f, i) => {
                         pop["idx"][i] = f.id;
-                        this.descriptor_data[f.id][idx] = pop.id;
+                        this.descriptor_data["selected"][f.id] = pop.id;
                     })
 
                     this.brushRange = baseBrushRange;
@@ -177,9 +131,8 @@ const app = function() {
         },
         removePopulation(popId) {
             var i = _.findIndex(this.populations, e => e.id == popId)
-            var j = this.header.indexOf("selected");
             search(this.quadtree, this.populations[i].brushDomains).then(found => {
-                found.forEach(f => this.descriptor_data[f.id][j] = 0)
+                found.forEach(f => this.descriptor_data["selected"][f.id] = 0)
             })
             this.populations.splice(i, 1)
             this.reColor(populationFeature, true)
@@ -197,13 +150,9 @@ const app = function() {
             this.colorHue.selected = false;
             feature.selected = true;
 
-            const idx = this.header.indexOf(feature.name)
-            await this.loadFeatures([feature]);
             switch(feature.type) {
                 case "nominal":
-                    const s = new Set()
-                    this.descriptor_data.forEach(r => s.add(r[idx]))
-                    const uniques = Array.from(s);
+                    const uniques = Array.from(new Set(this.descriptor_data[feature.name]))
                     const scale = (uniques.length < 10 ?
                         d3.scaleOrdinal().range(d3.schemeCategory10) : 
                         d3.scaleOrdinal().range(d3.quantize(d3.interpolateOrRd, uniques.length+1))
@@ -221,7 +170,7 @@ const app = function() {
 
                     break;
                 case "continuous":
-                    const arr = this.descriptor_data.map(r => r[idx]);
+                    const arr = this.descriptor_data[feature.name];
                     this.colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([
                         d3.quantile(arr, 0.05),
                         d3.quantile(arr, 0.95)
@@ -250,43 +199,22 @@ const app = function() {
                 if (progress) progress.update(1)
             }))
         },
-        async jsDivergence() {
-            // this.deleteAllowed = false;
-
-            // const ids = _.map(_.filter(this.populations, v => v.active), v => v.id);
-            // if (ids.length != 2) {
-            //     this.jsDivergenceError = true;
-            //     setTimeout(() => this.jsDivergenceError = false, 1000)
-            //     return 
-            // }
-            
+        selectFeatures() {
+            this.histogramFeatures = [];
+            this.descriptor_idx[0].idx.forEach(i => this.descriptors[i].histogram = false)
+            this.showFeaturesModal = true;
+        },
+        histograms() {
+            this.deleteAllowed = false;
             this.visualizerLoading = true;
-
-            backend.test(this.descriptor_data);
-
-            this.visualizerLoading = false;
-            
-
-            // d3.json("http://127.0.0.1:5000/features/js-divergence", {
-            //     method:"POST",
-            //     body: JSON.stringify({
-            //         populations: this.descriptor_data["selected"],
-            //         selected: ids 
-            //     }),
-            //     headers: {
-            //         "Content-type": "application/json; charset=UTF-8"
-            //     }
-            // }).then((response) => {
-            //     const features = response.data.map(value => this.descriptors[value]);
-
-            //     this.loadFeatures(features, prog)
-            //     .then(() => { 
-            //         this.visualizerLoading = false;
-            //         this.$nextTick(() => histogram_d3.bind(this)(response.data))
-            //     })
-            //     .then(() => this.deleteAllowed = true)
-            // })
-           
+            this.$nextTick(() => {
+                histogram_d3.bind(this)(
+                    this.descriptor_idx[0].idx
+                    .filter(i => this.descriptors[i].histogram)
+                    .map(i => this.descriptors[i].name)
+                );
+                this.visualizerLoading = false;
+            })
         },
         selectedFeatures() {
             return _.map(_.filter(this.features, v => v.selected), v => v.name)
