@@ -11,6 +11,7 @@ import * as _ from 'lodash';
 window._ = _
 
 const backend = require("src/js/app.js");
+
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
 const baseBrushRange = [[0,0], [0,0]]
 const url = "http://127.0.0.1:5000/feather/VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather";
