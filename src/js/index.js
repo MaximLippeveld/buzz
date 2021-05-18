@@ -37,6 +37,14 @@ const app = function() {
         descriptor_idx: [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}],
         showFeaturesModal: false,
         query_idx: [],
+        visualizerActive: false,
+        visualizerVisible: false,
+        liteRedraw() {
+            console.log("redraw");
+            d3.select('d3fc-group')
+                .node()
+                .requestRedraw();
+        },
         updateFillColor() {
             this.fillColor = fc
                 .webglFillColor()
@@ -46,6 +54,7 @@ const app = function() {
         async load() {
 
             this.scatterLoading = true;
+            feather.replace();
 
             console.time("data");
             [
@@ -69,8 +78,6 @@ const app = function() {
             this.redraw = scatter.bind(this)();
             this.scatterLoading = false;
             console.log("Finished", this.data.length);
-
-            feather.replace()
         },
         brushed() {
             search(this.quadtree, this.brushDomains).then(found => {
@@ -108,6 +115,10 @@ const app = function() {
                     this.brushRange = baseBrushRange;
                     this.reColor(populationFeature);
                     this.redraw();
+
+                    if (this.visualizerActive) {
+                        this.histograms();
+                    }
                 }
             })
         },
@@ -124,9 +135,7 @@ const app = function() {
             this.brushEnabled = enable;
 
             if (event) {
-                d3.select('d3fc-group')
-                    .node()
-                    .requestRedraw();
+                this.liteRedraw();
             }
         },
         removePopulation(popId) {
@@ -136,12 +145,18 @@ const app = function() {
             })
             this.populations.splice(i, 1)
             this.reColor(populationFeature, true)
+
+            if (this.visualizerActive) 
+                this.histograms();
         },
         editPopulation(pop) {
             this.currentPopulation = pop;
             this.brushRange = pop.brushRange;
             this.brush(true);
             this.redraw();
+            
+            if (this.visualizerActive) 
+                this.histograms();
         },
         showPopulation() {
             this.reColor(populationFeature, true)
@@ -182,9 +197,7 @@ const app = function() {
             this.updateFillColor();
 
             if (redraw) {
-                d3.select('d3fc-group')
-                    .node()
-                    .requestRedraw();
+                this.liteRedraw();
             }
         },
         async loadFeatures(features, progress) {
@@ -215,6 +228,8 @@ const app = function() {
         histograms() {
             this.deleteAllowed = false;
             this.visualizerLoading = true;
+            this.visualizerActive = true;
+            this.visualizerVisible = true;
             this.$nextTick(() => {
                 histogram_d3.bind(this)(
                     this.descriptor_idx[0].idx

@@ -9,7 +9,7 @@ export const histogram_d3 = async function(features) {
 
     const padding = 50
     const width = 350;
-    const height = d3.select("#visualizer").node().getBoundingClientRect().height - 30;
+    const height = d3.select("#visualizer").node().getBoundingClientRect().height - 10;
     const binning = d3.bin()
       .value(d => d)
       .thresholds(50);

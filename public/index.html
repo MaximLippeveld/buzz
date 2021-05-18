@@ -10,10 +10,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
 </head>
 <body x-data="app = app()" x-init="load()" class="w-full h-screen flex flex-row overflow-hidden relative" x-on:keydown="brush(!brushEnabled, $event)" x-on:keydown.enter="brushed()">
-    <div class="w-9/12 h-full">
-        <div id="chart" class="w-full h-4/6 relative">
+    <div class="w-9/12 h-full relative">
+        <div id="chart" class="w-full relative" :class="{ 'h-4/6': visualizerVisible, 'h-full': !visualizerVisible }" x-cloak>
             <div id="scatter-loading" x-show="scatterLoading" class="absolute z-50 left-2/4 top-2/4 w-48 -mx-24 -my-12 h-24 font-bold">
                 Loading scatterplot...
             </div>
@@ -35,7 +40,11 @@
                 </div>
             </template>
         </div>
-        <div class="h-2/6 pr-8 overflow-auto w-full flex flex-row relative" id="visualizer">
+        <div class="w-full" x-show="visualizerActive" :class="{ 'absolute bottom-0': !visualizerVisible }"  @click="visualizerVisible=!visualizerVisible; liteRedraw();" x-cloak>
+            <i class="mx-auto" x-show="visualizerVisible" data-feather="chevrons-down"></i>
+            <i class="mx-auto" x-show="!visualizerVisible" data-feather="chevrons-up"></i>
+        </div>
+        <div class="h-2/6 pr-8 overflow-auto w-full flex flex-row relative" x-show="visualizerVisible" id="visualizer" x-cloak>
             <div id="visualizer-loading" x-show="visualizerLoading" class="absolute z-50 left-2/4 top-2/4 w-48 -mx-24 -my-12 h-24 font-bold">
                 Loading histograms...
             </div>
@@ -93,7 +102,7 @@
             </template>
         </div>
     </div>
-    <div class="w-full h-full p-5 absolute bg-black bg-opacity-70" x-show="showFeaturesModal">
+    <div class="w-full h-full p-5 absolute bg-black bg-opacity-70" x-show="showFeaturesModal" x-cloak>
         <div id="descriptors" @click.away="showFeaturesModal = false" class="w-1/4 p-5 h-full bg-white mx-auto flex flex-col">
             <p class="font-bold mb-5 text-center">
                 Select features
