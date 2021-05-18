@@ -14,7 +14,6 @@ const backend = require("src/js/app.js");
 
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
 const baseBrushRange = [[0,0], [0,0]]
-const url = "http://127.0.0.1:5000/feather/VIB/Vulcan/vib-vulcan-metadata/representations/umap/Slava_PBMC/data.feather";
 
 const app = function() {
     return {
@@ -36,8 +35,8 @@ const app = function() {
         redraw: null,
         decorate: null,
         descriptor_idx: [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}],
-        histogramFeatures: [],
         showFeaturesModal: false,
+        query_idx: [],
         updateFillColor() {
             this.fillColor = fc
                 .webglFillColor()
@@ -201,9 +200,17 @@ const app = function() {
             }))
         },
         selectFeatures() {
-            this.histogramFeatures = [];
+            this.$refs.query.value = "";
+            this.query_idx = this.descriptor_idx[0].idx;
             this.descriptor_idx[0].idx.forEach(i => this.descriptors[i].histogram = false)
             this.showFeaturesModal = true;
+        },
+        query(event) {
+            const q = event.target.value;
+            this.query_idx = this.descriptor_idx[0].idx.filter(idx => this.descriptors[idx].name.includes(q));
+        },
+        amountSelected() {
+            return this.descriptor_idx[0].idx.filter(i => this.descriptors[i].histogram).length;
         },
         histograms() {
             this.deleteAllowed = false;

@@ -98,8 +98,9 @@
             <p class="font-bold mb-5 text-center">
                 Select features
             </p>
+            <input class="p-2 mb-2 bg-gray-100" placeholder="Search..." type="text" @input="query($event)" x-ref="query">
             <ul class="overflow-auto mb-5">
-                <template x-for="idx in descriptor_idx[0].idx" :key="idx">
+                <template x-for="idx in query_idx" :key="idx">
                     <li 
                         @click="descriptors[idx].histogram = !descriptors[idx].histogram;" 
                         class="cursor-pointer" 
@@ -107,7 +108,7 @@
                         x-text="descriptors[idx].name"></li>
                 </template>
             </ul>
-            <button class="p-5 bg-gray-200 active:bg-gray-300 rounded" @click="showFeaturesModal = false; histograms()">Show histograms</button>
+            <button class="p-5 bg-gray-200 active:bg-gray-300 rounded" @click="showFeaturesModal = false; histograms()">Show histograms (<span x-text="amountSelected()"></span> selected features)</button>
         </div>
     </div>
     <script type="module" src="/bin/index.js"></script>

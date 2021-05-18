@@ -81,7 +81,7 @@ export const histogram_d3 = async function(features) {
     join
         .enter()
         .append("svg")
-        .classed("flex-shrink-0 mr-5 histogram", true)
+        .classed("flex-shrink-0 mr-5 histogram cursor-pointer", true)
         .attr("width", width)
         .attr("height", height)
         .merge(join)
