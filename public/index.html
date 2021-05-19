@@ -10,6 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="stylesheet" href="/css/styles.css" />
+    <script type="text/javascript" ></script>
     <style>
         [x-cloak] {
             display: none !important;
@@ -17,7 +18,7 @@
     </style>
 </head>
 <body x-data="app = app()" x-init="load()" class="w-full h-screen flex flex-row overflow-hidden relative" x-on:keydown="brush(!brushEnabled, $event)" x-on:keydown.enter="brushed()">
-    <div class="w-9/12 h-full relative">
+    <div class="w-9/12 h-full relative flex flex-col">
         <div id="chart" class="w-full relative" :class="{ 'h-4/6': visualizerVisible, 'h-full': !visualizerVisible }" x-cloak>
             <div id="scatter-loading" x-show="scatterLoading" class="absolute z-50 left-2/4 top-2/4 w-48 -mx-24 -my-12 h-24 font-bold">
                 Loading scatterplot...
@@ -51,7 +52,7 @@
         </div>
     </div>
     <div id="controls" class="w-3/12 h-full flex flex-col">
-        <div class="h-1/6">
+        <div class="h-1/6 mb-2">
             <div class="h-2/6 p-2">
                 <p x-text="meta.name"></p>
                 <p x-text="meta.size"></p>
