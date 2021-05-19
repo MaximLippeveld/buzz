@@ -7,7 +7,6 @@ import { histogram_d3 } from './histogram';
 import feather from 'feather-icons';
 import * as _ from 'lodash';
             
-
 window._ = _
 
 const backend = require("src/js/app.js");

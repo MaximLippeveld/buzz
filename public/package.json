@@ -1,0 +1,32 @@
+{
+  "name": "my-app-name",
+  "version": "1.0.0",
+  "description": "snowpack",
+  "main": "index.html",
+  "author": "Maxim Lippeveld",
+  "license": "MIT",
+  "window": {
+    "frame": true,
+    "toolbar": true,
+    "min_width": 800,
+    "min_height": 600,
+    "as_desktop": true
+  },
+  "platformOverrides": {
+    "win": {
+      "window": {}
+    },
+    "win32": {
+      "window": {}
+    },
+    "win64": {
+      "window": {}
+    },
+    "osx": {},
+    "osx32": {},
+    "osx64": {},
+    "linux": {},
+    "linux32": {},
+    "linux64": {}
+  }
+}
