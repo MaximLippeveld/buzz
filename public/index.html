@@ -41,24 +41,24 @@
                 </div>
             </template>
         </div>
-        <div class="w-full" x-show="visualizerActive" :class="{ 'absolute bottom-0': !visualizerVisible }"  @click="visualizerVisible=!visualizerVisible; liteRedraw();" x-cloak>
+        <div class="w-full cursor-pointer" x-show="visualizerActive" :class="{ 'absolute bottom-0': !visualizerVisible }"  @click="visualizerVisible=!visualizerVisible; liteRedraw();" x-cloak>
             <i class="mx-auto" x-show="visualizerVisible" data-feather="chevrons-down"></i>
             <i class="mx-auto" x-show="!visualizerVisible" data-feather="chevrons-up"></i>
         </div>
-        <div class="h-2/6 pr-8 overflow-auto w-full flex flex-row relative" x-show="visualizerVisible" id="visualizer" x-cloak>
+        <div class="h-2/6 overflow-x-auto overflow-y-hidden w-full flex flex-row relative" x-show="visualizerVisible" id="visualizer" x-cloak>
             <div id="visualizer-loading" x-show="visualizerLoading" class="absolute z-50 left-2/4 top-2/4 w-48 -mx-24 -my-12 h-24 font-bold">
                 Loading histograms...
             </div>
         </div>
     </div>
-    <div id="controls" class="w-3/12 h-full flex flex-col">
+    <div id="controls" class="w-3/12 ml-4 h-full flex flex-col">
         <div class="h-1/6 mb-2">
             <div class="h-2/6 p-2">
                 <p x-text="meta.name"></p>
                 <p x-text="meta.size"></p>
             </div>
             <div id="toggles" class="h-4/6 flex flex-row flex-wrap items-start">
-                <div class="w-1/2 h-1/2 pr-2 pb-2">
+                <div class="w-1/2 h-1/2 pr-2 pb-2" x-cloak>
                     <button 
                         class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" 
                         @click="brush(!brushEnabled, $event)">
@@ -67,9 +67,9 @@
                         <span class="pl-2">Enable brush</span>
                     </button>
                 </div>
-                <div class="w-1/2 h-1/2 pr-2 pb-2"><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="annotations = []"><i class="" data-feather="x-square"></i><span class="pl-2">Close annotations</span></button></div>
-                <div class="w-1/2 h-1/2 pr-2 pb-2"><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="selectFeatures()"><i class="" data-feather="cpu"></i><span class="pl-2">Histograms</span></button></div>
-                <div class="w-1/2 h-1/2 pr-2 pb-2"><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="showPopulation()"><i class="" data-feather="aperture"></i><span class="pl-2">Show populations</span></button></div>
+                <div class="w-1/2 h-1/2 pr-2 pb-2" x-cloak><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="showFeaturesModal = true"><i class="" data-feather="cpu"></i><span class="pl-2">Histograms</span></button></div>
+                <div class="w-1/2 h-1/2 pr-2 pb-2" x-cloak><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="showPopulation()"><i class="" data-feather="aperture"></i><span class="pl-2">Show populations</span></button></div>
+                <div class="w-1/2 h-1/2 pr-2 pb-2" x-cloak><button x-show="images" class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="annotations = []"><i class="" data-feather="x-square"></i><span class="pl-2">Close annotations</span></button></div>
             </div>
         </div>
         <div id="populations" class="h-1/6 overflow-auto">
@@ -105,10 +105,13 @@
     </div>
     <div class="w-full h-full p-5 absolute bg-black bg-opacity-70" x-show="showFeaturesModal" x-cloak>
         <div id="descriptors" @click.away="showFeaturesModal = false" class="w-1/4 p-5 h-full bg-white mx-auto flex flex-col">
-            <p class="font-bold mb-5 text-center">
+            <p class="font-bold mb-5 text-2xl text-center">
                 Select features
             </p>
-            <input class="p-2 mb-2 bg-gray-100" placeholder="Search..." type="text" @input="query($event)" x-ref="query">
+            <div class="flex flex-row mb-2">
+                <input class="focus:outline-none p-2 bg-gray-100 w-full" placeholder="Search..." type="text" @input="query($event)" x-ref="query">
+                <button class="focus:outline-none ml-4 p-2 flex-grow-0 bg-gray-100" x-show="amountSelected() > 0" @click="resetFeaturesModal()"><i data-feather="refresh-cw"></i></button>
+            </div>
             <ul class="overflow-auto mb-5">
                 <template x-for="idx in query_idx" :key="idx">
                     <li 

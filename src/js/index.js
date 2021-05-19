@@ -38,6 +38,7 @@ const app = function() {
         query_idx: [],
         visualizerActive: false,
         visualizerVisible: false,
+        images: false,
         liteRedraw() {
             console.log("redraw");
             d3.select('d3fc-group')
@@ -61,10 +62,13 @@ const app = function() {
                 this.descriptor_data, 
                 this.data, 
                 this.descriptor_idx, 
-                this.descriptors
+                this.descriptors,
+                this.images
             ] = await backend.loadData("test");
             _.forEach(this.descriptors, (d, k) => d.loaded=true);
             console.timeEnd("data");
+
+            this.resetFeaturesModal();
             
             this.quadtree = d3
                 .quadtree()
@@ -211,11 +215,10 @@ const app = function() {
                 if (progress) progress.update(1)
             }))
         },
-        selectFeatures() {
+        resetFeaturesModal() {
             this.$refs.query.value = "";
             this.query_idx = this.descriptor_idx[0].idx;
             this.descriptor_idx[0].idx.forEach(i => this.descriptors[i].histogram = false)
-            this.showFeaturesModal = true;
         },
         query(event) {
             const q = event.target.value;
@@ -257,7 +260,7 @@ const app = function() {
                 cycleOne(id)
             }
         },
-        annotation(x, y, data, app, hold) {
+        annotation(x, y, data, hold) {
             function post() {
                 feather.replace()
                 _.each(app.annotations, function(value) {
@@ -270,19 +273,19 @@ const app = function() {
                 })
             }
 
-            d3.json("http://127.0.0.1:5000/image/" + data.meta_dir).then((response) => {
-                if (!hold) app.annotations = []
+            // d3.json("http://127.0.0.1:5000/image/" + data.meta_dir).then((response) => {
+            //     if (!hold) app.annotations = []
 
-                this.annotations.push({
-                    id: app.currAnnotId++, 
-                    images: response.data,
-                    pos: {x: x, y: y},
-                    width: response.width,
-                    height: response.height,
-                    channels: response.channels
-                })
-                this.$nextTick(() => post())
-            });
+            //     this.annotations.push({
+            //         id: app.currAnnotId++, 
+            //         images: response.data,
+            //         pos: {x: x, y: y},
+            //         width: response.width,
+            //         height: response.height,
+            //         channels: response.channels
+            //     })
+            //     this.$nextTick(() => post())
+            // });
         }
     }
 };

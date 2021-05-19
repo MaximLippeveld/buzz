@@ -128,7 +128,7 @@ export const scatter = function() {
 
                     // if a point is found, draw an annotation
                     if(c != null) {
-                        this.annotation(coord[0], coord[1], c, app, event.ctrlKey)
+                        this.annotation(coord[0], coord[1], c, event.ctrlKey)
                     }
                 }.bind(this));
 
