@@ -38,9 +38,10 @@ exports.loadData = async function(csv) {
     data = [];
     count = 0;
     first = true;
+    
+    var images = false;
 
     await new Promise((resolve, reject) => {
-        var images = false;
 
         papa.parse(stream, {
             header: false,
@@ -71,6 +72,7 @@ exports.loadData = async function(csv) {
                 const idxDim1 = header.indexOf("feat_umap_0");
                 const idxDim2 = header.indexOf("feat_umap_1");
                 const idxImage = header.indexOf("meta_image");
+
                 if (idxImage != -1) images = true;
 
                 for(let i = 0; i<batch.length; i++) {
