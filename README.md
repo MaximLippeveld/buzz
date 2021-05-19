@@ -23,11 +23,3 @@ so you can interpret it.
 * TailwindCSS, for styling
 * NW.js, for packaging into a desktop app
 * Papaparse, for fast CSV parsing
-
-## Development
-
-### Setup environment
-`npm install`
-
-### Setup servers
-`npm run dev:nw`
