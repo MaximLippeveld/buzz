@@ -97,6 +97,7 @@ exports.loadData = async function(csv) {
     return [header, descriptor_data, data, descriptor_idx, descriptors, images];
 }
 
+// https://stackoverflow.com/questions/28834835/readfile-in-base64-nodejs
 exports.loadImages = function(url) {
     const fs = require('fs');
     const contents = fs.readFileSync(url, {encoding: 'base64'});
