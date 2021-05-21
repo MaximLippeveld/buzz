@@ -66,7 +66,7 @@ const app = function() {
             this.fillColor = fc
                 .webglFillColor()
                 .value(r => webglColor(this.colorScale(r), 0.9))
-                .data(this.descriptor_data[this.colorHue.name]);
+                .data(this.descriptor_data.array(this.colorHue.name));
         },
         async load() {
 
@@ -77,10 +77,8 @@ const app = function() {
             [
                 this.header, 
                 this.descriptor_data, 
-                this.data, 
                 this.descriptor_idx, 
                 this.descriptors,
-                this.images
             ] = await backend.loadData("test");
             _.forEach(this.descriptors, (d, k) => d.loaded=true);
             console.timeEnd("data");
@@ -91,13 +89,13 @@ const app = function() {
                 .quadtree()
                 .x(d => d.dim_1)
                 .y(d => d.dim_2)
-                .addAll(this.data);
+                .addAll(this.descriptor_data.objects({columns: {index: "id", feat_umap_0: "dim_1", feat_umap_1: "dim_2"}}));
 
-            this.descriptor_data["selected"] = new Array(this.data.length).fill(0);
+            this.descriptor_data = this.descriptor_data.derive({"selected": 0});
             await this.reColor(populationFeature);
             this.redraw = scatter.bind(this)();
             this.scatterLoading = false;
-            console.log("Finished", this.data.length);
+            console.log("Finished", this.descriptor_data.numRows());
         },
         brushed() {
             search(this.quadtree, this.brushDomains).then(found => {
@@ -127,10 +125,12 @@ const app = function() {
                     pop["idx"] = new Array(found.length);
                     pop["size"] = found.length;
 
-                    found.forEach((f, i) => {
-                        pop["idx"][i] = f.id;
-                        this.descriptor_data["selected"][f.id] = pop.id;
-                    })
+                    this.descriptor_data = this.descriptor_data.derive({"selected": row => found.includes(row.index) ? pop.id: row.selected})
+                    // const selectedGetter = this.descriptor_data.getter("selected")
+                    // found.forEach((f, i) => {
+                    //     pop["idx"][i] = f.id;
+                    //     selectedGetter(f.id) = pop.id;
+                    // })
 
                     this.brushRange = baseBrushRange;
                     this.reColor(populationFeature);
@@ -187,7 +187,7 @@ const app = function() {
 
             switch(feature.type) {
                 case "nominal":
-                    const uniques = Array.from(new Set(this.descriptor_data[feature.name]))
+                    const uniques = Array.from(new Set(this.descriptor_data.column(feature.name)))
                     const scale = (uniques.length < 10 ?
                         d3.scaleOrdinal().range(d3.schemeCategory10) : 
                         d3.scaleOrdinal().range(d3.quantize(d3.interpolateOrRd, uniques.length+1))
@@ -205,7 +205,7 @@ const app = function() {
 
                     break;
                 case "continuous":
-                    const arr = this.descriptor_data[feature.name];
+                    const arr = this.descriptor_data.column(feature.name);
                     this.colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([
                         d3.quantile(arr, 0.05),
                         d3.quantile(arr, 0.95)

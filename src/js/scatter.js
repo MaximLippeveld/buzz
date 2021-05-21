@@ -28,10 +28,11 @@ export const scatter = function() {
     canvas.height = height;
     
     const xScale = d3.scaleLinear()
-            .domain(d3.extent(this.data, d => d.dim_1));
+            .domain(d3.extent(this.descriptor_data.array("feat_umap_0")));
+    console.log(xScale.domain())
 
     const yScale = d3.scaleLinear()
-            .domain(d3.extent(this.data, d => d.dim_2));
+            .domain(d3.extent(this.descriptor_data.array("feat_umap_1")));
 
     const xScaleOriginal = xScale.copy();
     const yScaleOriginal = yScale.copy();
@@ -72,7 +73,6 @@ export const scatter = function() {
                             gl.ONE_MINUS_SRC_ALPHA
                         );
                         
-                        // add colorscale for continuous features
                         const leg = d3.select("#legend svg")
                         if (this.colorHue.type == "continuous") {
                             leg.selectAll("*").remove();
@@ -155,7 +155,7 @@ export const scatter = function() {
         d3
             .select("#chart")
             .datum({
-                series: this.data,
+                series: this.descriptor_data.objects({columns: {"feat_umap_0": "dim_1", "feat_umap_1": "dim_2"}}),
                 brushRange: this.brushRange
             })
             .call(chart);

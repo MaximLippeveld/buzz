@@ -38,6 +38,7 @@
   "dependencies": {
     "@d3fc/d3fc-webgl": "^3.1.0",
     "alpinejs": "^2.8.1",
+    "arquero": "^4.7.2",
     "d3": "^6.7.0",
     "d3fc": "^15.1.2",
     "d3fc-brush": "^1.0.1",
