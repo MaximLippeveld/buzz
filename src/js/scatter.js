@@ -29,7 +29,6 @@ export const scatter = function() {
     
     const xScale = d3.scaleLinear()
             .domain(d3.extent(this.descriptor_data.array("feat_umap_0")));
-    console.log(xScale.domain())
 
     const yScale = d3.scaleLinear()
             .domain(d3.extent(this.descriptor_data.array("feat_umap_1")));

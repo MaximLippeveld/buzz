@@ -55,12 +55,8 @@ exports.loadData = async function(csv) {
 
     const dt = await aq.load(f, aq_options)
 
-    console.time("batch")
-    
     header = dt.columnNames();
     [descriptors, descriptor_idx] = headers(header);
-
-    console.timeEnd("batch");
 
     return [header, dt, descriptor_idx, descriptors];
 }
