@@ -39,7 +39,7 @@ export const search = async function(tree, [[x0, y0], [x3, y3]]) {
                 const x = node.data.dim_1;
                 const y = node.data.dim_2;
                 if (x >= x0 && x < x3 && y >= y0 && y < y3) {
-                    found.push(node.data)
+                    found.push(node.data.id)
                 }
             } while ((node = node.next));
         }

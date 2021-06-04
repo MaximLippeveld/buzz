@@ -122,15 +122,14 @@ const app = function() {
 
                     pop["brushDomains"] = this.brushDomains;
                     pop["brushRange"] = this.brushRange;
-                    pop["idx"] = new Array(found.length);
+                    pop["idx"] = found;
                     pop["size"] = found.length;
 
-                    this.descriptor_data = this.descriptor_data.derive({"selected": row => found.includes(row.index) ? pop.id: row.selected})
-                    // const selectedGetter = this.descriptor_data.getter("selected")
-                    // found.forEach((f, i) => {
-                    //     pop["idx"][i] = f.id;
-                    //     selectedGetter(f.id) = pop.id;
-                    // })
+                    this.descriptor_data = this.descriptor_data
+                        .params({id: pop.id, arr: found})
+                        .derive({
+                            "selected": (row, $) => $.arr.includes(row.index) ? $.id : row.selected
+                        })
 
                     this.brushRange = baseBrushRange;
                     this.reColor(populationFeature);
