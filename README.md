@@ -1,11 +1,11 @@
 # Buzz: an interactive tool for feature space exploration
 
-High-dimensional datasets are often squeezed through an algorithm like PCA, UMAP, 
-T-SNE or others to visualize them on a 2D scatterplot. These dimensionality 
-reduction procedures let us expose heterogeneity in the dataset. However, we would
-like to know the source of this heterogeneity as well. This is the goal of Buzz.
+High-dimensional datasets are often squeezed through dimensionality reduction
+algorithms like PCA, UMAP, T-SNE or others to visualize them on a 2D scatterplot. 
+These procedures let us expose heterogeneity in datasets. However, we would
+like to know the source of this heterogeneity as well. This is where Buzz can help.
 
-Buzz is an interactive tool that lets you explore the low dimensional embedding 
+Buzz is an interactive tool that lets you explore low dimensional embeddings
 of your dataset by:
 - coloring it according to features you provide,
 - and selecting populations between which you can compare feature distributions.
