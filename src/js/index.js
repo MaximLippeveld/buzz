@@ -122,11 +122,11 @@ const app = function() {
 
                     pop["brushDomains"] = this.brushDomains;
                     pop["brushRange"] = this.brushRange;
-                    pop["idx"] = found;
+                    pop["idx"] = found.sort((a, b) => a - b);
                     pop["size"] = found.length;
 
                     this.descriptor_data = this.descriptor_data
-                        .params({id: pop.id, arr: found.sort((a, b) => a - b)})
+                        .params({id: pop.id, arr: Array.from(pop["idx"])})
                         .derive({
                             "selected": (row, $) => includes2($.arr, row.index) ? $.id : row.selected
                         })

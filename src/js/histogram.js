@@ -17,6 +17,7 @@
 
 // https://www.d3-graph-gallery.com/graph/histogram_basic.html
 
+import { op } from 'arquero';
 import * as d3 from 'd3';
 
 
@@ -34,8 +35,8 @@ export const histogram_d3 = async function(features) {
     var yScale = d3.scaleLinear().range([height-padding, padding]);
     const populations = this.populations.filter(pop => pop.active);
 
-    const descriptor_data = this.descriptor_data;
-    const hist = function(feature, i) {
+    const descriptor_data = this.descriptor_data.filter(r => r.selected != 0);
+    const hist = function(feature) {
         const svg = d3.select(this);
 
         svg.selectAll("*").remove();
@@ -45,27 +46,26 @@ export const histogram_d3 = async function(features) {
             .attr("text-anchor", "middle")
             .text(d => d)
 
-        const feats = {};
-        var domain = null
-        populations.forEach(pop => {
-            const feat = pop["idx"].map(i => descriptor_data[feature][i]);
-            const extent = d3.extent(feat)
-            if (domain == null) {
-                domain = extent
-            } else {
-                domain[0] = d3.min([extent[0], domain[0]])
-                domain[1] = d3.max([extent[1], domain[1]])
-            }
-            feats[pop.id] = feat;
-        })
+
+        var domain = descriptor_data
+        .rollup({max: op.max(feature), min: op.min(feature)})
+        .objects()[0];
+        domain = [domain["min"], domain["max"]];
+
+        var parts = descriptor_data
+        .params({"binning": binning})
+        .groupby("selected")
+        .partitions();
 
         var allBins = [];
         var maxY = 0;
-        populations.forEach(pop => {
-            const bins = binning.domain(domain)(feats[pop.id])
+        var getter = descriptor_data.getter(feature);
+        parts.forEach((part, idx) => {
+            const feat = part.map(getter)
+            const bins = binning.domain(domain)(feat)
             maxY = d3.max([maxY, d3.max(bins, d => d.length)]);
             allBins = allBins.concat(bins.map(b => {
-                const col = d3.color(pop.color);
+                const col = d3.color(populations[idx].color);
                 col.opacity = 0.5;
                 b.color = col;
                 return b;
