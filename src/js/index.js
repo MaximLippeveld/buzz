@@ -98,6 +98,7 @@ const app = function() {
             console.log("Finished", this.descriptor_data.numRows());
         },
         brushed() {
+            console.time("brush")
             search(this.quadtree, this.brushDomains).then(found => {
                 if (found.length > 0) {
                     var pop;
@@ -125,11 +126,13 @@ const app = function() {
                     pop["idx"] = found;
                     pop["size"] = found.length;
 
+                    console.time("selected")
                     this.descriptor_data = this.descriptor_data
-                        .params({id: pop.id, arr: found})
+                        .params({id: pop.id, arr: found.sort()})
                         .derive({
-                            "selected": (row, $) => $.arr.includes(row.index) ? $.id : row.selected
+                            "selected": (row, $) => includes2($.arr, row.index) ? $.id : row.selected
                         })
+                    console.timeEnd("selected")
 
                     this.brushRange = baseBrushRange;
                     this.reColor(populationFeature);
@@ -138,6 +141,8 @@ const app = function() {
                     if (this.visualizerActive) {
                         this.histograms();
                     }
+
+                    console.timeEnd("brush")
                 }
             })
         },

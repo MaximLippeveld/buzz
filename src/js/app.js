@@ -15,8 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Buzz.  If not, see <http://www.gnu.org/licenses/>.
 
-const fs = require("fs");
 const aq = require("arquero");
+const _ = require("lodash");
+
+aq.addFunction("includes2", function(arr, i) {
+    var idx = _.sortedIndexOf(arr, i)
+    if (idx != -1) {
+        arr = arr.splice(idx, 1)
+        return true
+    }
+    return false
+})
 
 // const f = "/data/Experiment_data/weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/c8ba196c-0b22-4489-9f9c-1242f68dd7a5.csv"
 const f ="/data/Experiment_data/weizmann/test.feather" 
