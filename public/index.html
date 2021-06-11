@@ -140,7 +140,7 @@
                         x-text="descriptors[idx].name"></li>
                 </template>
             </ul>
-            <button class="p-5 bg-gray-200 active:bg-gray-300 rounded" @click="showFeaturesModal = false; histograms()">Show histograms (<span x-text="amountSelected()"></span> selected features)</button>
+            <button class="p-5 bg-gray-200 active:bg-gray-300 rounded" @click="showFeaturesModal = false; histograms()" :disabled="amountSelected() == 0">Show histograms (<span x-text="amountSelected()"></span> selected features)</button>
         </div>
     </div>
     <script type="module" src="/bin/index.js"></script>
