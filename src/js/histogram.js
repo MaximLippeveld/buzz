@@ -32,7 +32,7 @@ export const histogram_d3 = async function(features) {
       .value(d => d)
       .thresholds(50);
     var xScale = d3.scaleLinear().rangeRound([padding, width-padding]);
-    var yScale = d3.scaleLinear().range([height-padding, padding]);
+    var yScale = d3.scaleLinear().range([height-padding, padding]).domain([0,1]);
     const populations = this.populations.filter(pop => pop.active);
     const popIds = populations.map(pop => pop.id);
 
@@ -63,20 +63,22 @@ export const histogram_d3 = async function(features) {
         .objects()[0];
         domain = [domain["min"], domain["max"]];
 
+        var maxY, feat, bins, popId, col, popScale;
         var allBins = [];
-        var maxY = 0;
         var getter = descriptor_data.getter(feature);
         parts.forEach((part, idx) => {
 
-            const popId = groups.get[0](groups.rows[idx])
-            const col = d3.color(populations[popIds.indexOf(popId)].color);
+            popId = groups.get[0](groups.rows[idx])
+            col = d3.color(populations[popIds.indexOf(popId)].color);
             col.opacity = 0.5;
 
-            const feat = part.map(getter)
-            const bins = binning.domain(domain)(feat)
-            maxY = d3.max([maxY, d3.max(bins, d => d.length)]);
+            feat = part.map(getter)
+            bins = binning.domain(domain)(feat)
+            maxY = d3.max(bins, d => d.length);
+            popScale = d3.scaleLinear().domain([0, maxY]).range([0,1]);
             allBins = allBins.concat(bins.map(b => {
                 b.color = col;
+                b.height = popScale(b.length);
                 return b;
             }));
         })
@@ -87,16 +89,16 @@ export const histogram_d3 = async function(features) {
 
         svg.append("g")
             .attr("transform", "translate(" + padding + ", 0)")
-            .call(d3.axisLeft(yScale.domain([0, maxY])));
+            .call(d3.axisLeft(yScale));
 
         svg
             .selectAll("rect")
             .data(allBins)
             .enter()
             .append("rect")
-                .attr("transform", d => "translate(" + xScale(d.x0) + "," + yScale(d.length) + ")")
+                .attr("transform", d => "translate(" + xScale(d.x0) + "," + yScale(d.height) + ")")
                 .attr("width", d => xScale(d.x1) - xScale(d.x0) -1)
-                .attr("height", d => height - padding - yScale(d.length))
+                .attr("height", d => height - padding - yScale(d.height))
                 .style("fill", d => d.color)
     }
 
