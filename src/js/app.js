@@ -18,7 +18,7 @@
 const aq = require("arquero");
 const _ = require("lodash");
 
-aq.addFunction("includes2", function(arr, i) {
+aq.addFunction("sortedIncludesWithRemove", function(arr, i) {
     var idx = _.sortedIndexOf(arr, i)
     if (idx != -1) {
         arr = arr.splice(idx, 1)
@@ -28,7 +28,7 @@ aq.addFunction("includes2", function(arr, i) {
 })
 
 // const f = "/data/Experiment_data/weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/c8ba196c-0b22-4489-9f9c-1242f68dd7a5.csv"
-const f ="/data/Experiment_data/weizmann/test.feather" 
+const f ="/data/Experiment_data/weizmann/test2.feather" 
             
 function headers(features) {
     var descriptor_idx = [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}];

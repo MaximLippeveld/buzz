@@ -128,7 +128,7 @@ const app = function() {
                     this.descriptor_data = this.descriptor_data
                         .params({id: pop.id, arr: Array.from(pop["idx"])})
                         .derive({
-                            "selected": (row, $) => includes2($.arr, row.index) ? $.id : row.selected
+                            "selected": (row, $) => sortedIncludesWithRemove($.arr, row.index) ? $.id : row.selected
                         })
 
                     this.brushRange = baseBrushRange;
@@ -162,7 +162,7 @@ const app = function() {
             this.descriptor_data = this.descriptor_data
                 .params({arr: Array.from(this.populations[i]["idx"])})
                 .derive({
-                    "selected": (row, $) => includes2($.arr, row.index) ? 0 : row.selected
+                    "selected": (row, $) => sortedIncludesWithRemove($.arr, row.index) ? 0 : row.selected
                 })
             this.populations.splice(i, 1)
             this.reColor(populationFeature, true)
