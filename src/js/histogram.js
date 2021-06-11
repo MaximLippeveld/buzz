@@ -34,8 +34,19 @@ export const histogram_d3 = async function(features) {
     var xScale = d3.scaleLinear().rangeRound([padding, width-padding]);
     var yScale = d3.scaleLinear().range([height-padding, padding]);
     const populations = this.populations.filter(pop => pop.active);
+    const popIds = populations.map(pop => pop.id);
 
-    const descriptor_data = this.descriptor_data.filter(r => r.selected != 0);
+    const descriptor_data = this.descriptor_data
+    .params({"pops": popIds})
+    .filter((r, $) => includes($.pops, r.selected));
+    
+    var grouped = descriptor_data
+    .params({"binning": binning})
+    .groupby("selected");
+
+    var groups = grouped.groups();
+    var parts = grouped.partitions();
+
     const hist = function(feature) {
         const svg = d3.select(this);
 
@@ -52,21 +63,19 @@ export const histogram_d3 = async function(features) {
         .objects()[0];
         domain = [domain["min"], domain["max"]];
 
-        var parts = descriptor_data
-        .params({"binning": binning})
-        .groupby("selected")
-        .partitions();
-
         var allBins = [];
         var maxY = 0;
         var getter = descriptor_data.getter(feature);
         parts.forEach((part, idx) => {
+
+            const popId = groups.get[0](groups.rows[idx])
+            const col = d3.color(populations[popIds.indexOf(popId)].color);
+            col.opacity = 0.5;
+
             const feat = part.map(getter)
             const bins = binning.domain(domain)(feat)
             maxY = d3.max([maxY, d3.max(bins, d => d.length)]);
             allBins = allBins.concat(bins.map(b => {
-                const col = d3.color(populations[idx].color);
-                col.opacity = 0.5;
                 b.color = col;
                 return b;
             }));
