@@ -96,6 +96,10 @@ export const histogram_d3 = async function(features) {
         .data(features)
 
     join
+        .exit()
+        .remove();
+
+    join
         .enter()
         .append("svg")
         .classed("flex-shrink-0 mr-5 histogram cursor-pointer", true)
