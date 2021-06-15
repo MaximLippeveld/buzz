@@ -30,7 +30,7 @@ export const histogram_d3 = async function(features) {
     const height = d3.select("#visualizer").node().getBoundingClientRect().height;
     const binning = d3.bin()
       .value(d => d)
-      .thresholds(50);
+      .thresholds(30);
     var xScale = d3.scaleLinear().rangeRound([padding, width-padding]);
     var yScale = d3.scaleLinear().range([height-padding, padding]).domain([0,1]);
     const populations = this.populations.filter(pop => pop.active);
