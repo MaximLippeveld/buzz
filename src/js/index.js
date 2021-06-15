@@ -97,7 +97,8 @@ const app = function() {
             this.scatterLoading = false;
             console.log("Finished", this.descriptor_data.numRows());
         },
-        brushed() {
+        async brushed() {
+            await this.reColor(populationFeature, false);
             search(this.quadtree, this.brushDomains).then(found => {
                 if (found.length > 0) {
                     var pop;
@@ -132,8 +133,7 @@ const app = function() {
                         })
 
                     this.brushRange = baseBrushRange;
-                    this.reColor(populationFeature);
-                    this.redraw();
+                    this.reColor(populationFeature, true);
 
                     if (this.visualizerActive) {
                         this.histograms();

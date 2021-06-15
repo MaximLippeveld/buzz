@@ -68,6 +68,9 @@
             <div id="visualizer-loading" x-show="visualizerLoading" class="absolute z-50 left-2/4 top-2/4 w-48 -mx-24 -my-12 h-24 font-bold">
                 Loading histograms...
             </div>
+            <div class="flex flex-col justify-center">
+                <button class="p-4 flex-grow-0 rounded-full active:bg-gray-300 bg-gray-200" @click="showFeaturesModal = true"><i data-feather="plus"></i></button>
+            </div>
         </div>
     </div>
     <div id="controls" class="w-3/12 ml-4 h-full flex flex-col">
