@@ -38,7 +38,7 @@ const app = function() {
         currAnnotId: 1,
         populations: [],
         annotations: [],
-        scatterLoading: true,
+        scatterLoading: false,
         visualizerLoading: false,
         brushEnabled: false,
         jsDivergenceError: false,
@@ -68,21 +68,51 @@ const app = function() {
                 .value(r => webglColor(this.colorScale(r), 0.9))
                 .data(this.descriptor_data.array(this.colorHue.name));
         },
-        async load() {
+        setup() {
+            feather.replace();
+            
+            var menu = new nw.Menu({ type: "menubar"});
+            var fileMenu = new nw.Menu()
+            fileMenu.append(new nw.MenuItem({
+                label: "Open",
+                click: () => {
+                    this.$refs.fileSelector.click()
+                }
+            }));
+            fileMenu.append(new nw.MenuItem({
+                type: "separator",
+            }))
+            fileMenu.append(new nw.MenuItem({
+                label: "Toggle fullscreen",
+                click: () => nw.Window.get().toggleFullscreen()
+            }))
+            fileMenu.append(new nw.MenuItem({
+                label: "Quit",
+                click: () => nw.Window.get().close()
+            }))
+            menu.append(new nw.MenuItem({
+                label: "File",
+                submenu: fileMenu
+            }));
+            nw.Window.get().menu = menu;
+        },
+        async load(event) {
 
             this.scatterLoading = true;
-            feather.replace();
 
+            console.log(event.target.files)
             console.time("data");
             [
                 this.header, 
                 this.descriptor_data, 
                 this.descriptor_idx, 
                 this.descriptors,
-            ] = await backend.loadData("test");
-            _.forEach(this.descriptors, (d, k) => d.loaded=true);
+            ] = await backend.loadData(event.target.files[0].path);
             console.timeEnd("data");
-
+            
+            this.meta["size"] = this.descriptor_data.numRows();
+            this.meta["name"] = event.target.files[0].path;
+            _.forEach(this.descriptors, (d, k) => d.loaded=true);
             this.resetFeaturesModal();
             
             this.quadtree = d3

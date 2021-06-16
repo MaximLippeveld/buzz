@@ -8,8 +8,8 @@
   "window": {
     "frame": true,
     "toolbar": true,
-    "min_width": 800,
-    "min_height": 600,
+    "min_width": 1000,
+    "min_height": 1000,
     "as_desktop": true
   },
   "platformOverrides": {
