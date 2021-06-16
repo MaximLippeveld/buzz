@@ -26,7 +26,7 @@ import * as _ from 'lodash';
             
 window._ = _
 
-const backend = require("src/js/app.js");
+const backend = require("app.js");
 
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
 const baseBrushRange = [[0,0], [0,0]]
@@ -100,7 +100,6 @@ const app = function() {
 
             this.scatterLoading = true;
 
-            console.log(event.target.files)
             console.time("data");
             [
                 this.header, 
