@@ -28,7 +28,7 @@
     <meta name="author" content="Maxim Lippeveld"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/public/css/styles.css" />
     <script type="text/javascript" ></script>
     <style>
         [x-cloak] {
@@ -90,7 +90,7 @@
                         <span class="pl-2">Enable brush</span>
                     </button>
                 </div>
-                <div class="w-1/2 h-1/2 pr-2 pb-2" x-cloak><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="showFeaturesModal = true"><i class="" data-feather="cpu"></i><span class="pl-2">Histograms</span></button></div>
+                <div class="w-1/2 h-1/2 pr-2 pb-2" x-cloak><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-col items-center" @click="showFeaturesModal = true"><i class="" data-feather="cpu"></i><span class="pl-2">Histograms</span></button></div>
                 <div class="w-1/2 h-1/2 pr-2 pb-2" x-cloak><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="showPopulation()"><i class="" data-feather="aperture"></i><span class="pl-2">Show populations</span></button></div>
                 <div class="w-1/2 h-1/2 pr-2 pb-2" x-cloak><button x-show="images" class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="annotations = []"><i class="" data-feather="x-square"></i><span class="pl-2">Close annotations</span></button></div>
             </div>

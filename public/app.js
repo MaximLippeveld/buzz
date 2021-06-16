@@ -26,10 +26,7 @@ aq.addFunction("sortedIncludesWithRemove", function(arr, i) {
     }
     return false
 })
-
-// const f = "/data/Experiment_data/weizmann/EhV/weizmann-ehv-metadata/representations/umap/Low/c8ba196c-0b22-4489-9f9c-1242f68dd7a5.csv"
-const f ="/data/Experiment_data/weizmann/test2.feather" 
-            
+ 
 function headers(features) {
     var descriptor_idx = [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}];
     var descriptors = {};
