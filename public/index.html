@@ -86,8 +86,11 @@
         <div id="controls" class="w-3/12 ml-4 h-full flex flex-col">
             <div class="h-2/6 mb-2">
                 <div class="h-2/6 p-2">
-                    <p x-show="!noDatasetLoaded" x-text="meta.name"></p>
-                    <p x-show="!noDatasetLoaded" x-text="meta.size"></p>
+                    <div x-show="!noDatasetLoaded">
+                        <h1>Dataset info</h1>
+                        <p x-show="!noDatasetLoaded">Path: <span x-text="meta.name"></span></p>
+                        <p x-show="!noDatasetLoaded">Size: <span x-text="meta.size"></span></p>
+                    </div>
                 </div>
                 <div id="toggles" class="h-4/6 flex flex-col items-start">
                     <div class="btn-wrap" x-cloak>
@@ -122,15 +125,18 @@
                 <template x-for="item in descriptor_idx" :key="item.name">
                     <div class="h-full w-1/2 pr-2 flex flex-col">
                         <h1 class="flex-shrink-0 capitalize font-bold" x-text="item.name"></h1>
-                        <ul class="overflow-y-auto flex-auto">
-                            <template x-for="idx in item.idx" :key="idx">
-                                <li 
+                        <input type="text" class="p-1 mb-1 bg-gray-200" placeholder="Search..." @change="query($event, item.name)">
+                        <template x-if="item.name in query_idx">
+                            <ul class="overflow-y-scroll flex-auto">
+                                <template  x-for="idx in query_idx[item.name]" :key="idx">
+                                    <li 
                                     @click="reColor(descriptors[idx], true)" 
                                     class="cursor-color-picker w-full overflow-hidden overflow-ellipsis" 
                                     :class="{'font-bold': descriptors[idx].selected, 'opacity-50': !descriptors[idx].loaded}" 
                                     x-text="descriptors[idx].name"></li>
-                            </template>
-                        </ul>
+                                </template>
+                            </ul>
+                        </template> 
                     </div>
                 </template>
             </div>
@@ -144,11 +150,11 @@
                 Select features
             </p>
             <div class="flex flex-row mb-2">
-                <input class="focus:outline-none p-2 bg-gray-100 w-full" placeholder="Search..." type="text" @input="query($event)" x-ref="query">
+                <input class="focus:outline-none p-2 bg-gray-100 w-full" placeholder="Search..." type="text" @input="query($event, 'modal')" x-ref="query">
                 <button class="focus:outline-none ml-4 p-2 flex-grow-0 bg-gray-100" x-show="amountSelected() > 0" @click="resetFeaturesModal()"><i data-feather="refresh-cw"></i></button>
             </div>
             <ul class="overflow-auto mb-5">
-                <template x-for="idx in query_idx" :key="idx">
+                <template x-for="idx in query_idx['modal']" :key="idx">
                     <li 
                         @click="descriptors[idx].histogram = !descriptors[idx].histogram;" 
                         class="cursor-pointer" 
@@ -159,6 +165,12 @@
             <button class="p-5 bg-gray-200 active:bg-gray-300 rounded" @click="showFeaturesModal = false; histograms()" :disabled="amountSelected() == 0">Show histograms (<span x-text="amountSelected()"></span> selected features)</button>
         </div>
     </div>
+
+    <!-- Credits section -->
+    <div x-show="showCredits" x-cloak>
+        <div>Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+    </div>
+
     <script type="module" src="/bin/index.js"></script>
 </body>
 </html>

@@ -30,6 +30,7 @@ const backend = require("public/app.js");
 
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
 const baseBrushRange = [[0,0], [0,0]]
+const keyMap = {"feature": 0, "meta": 1};
 
 const app = function() {
     return {
@@ -52,8 +53,9 @@ const app = function() {
         decorate: null,
         descriptor_idx: [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}],
         showFeaturesModal: false,
+        showCredits: false,
         noDatasetLoaded: true,
-        query_idx: [],
+        query_idx: {'modal': []},
         visualizerActive: false,
         visualizerVisible: false,
         images: false,
@@ -113,6 +115,7 @@ const app = function() {
             this.meta["size"] = this.descriptor_data.numRows();
             this.meta["name"] = event.target.files[0].path;
             _.forEach(this.descriptors, (d, k) => d.loaded=true);
+            this.descriptor_idx.forEach(d => this.query_idx[d.name] = d.idx);
             this.resetFeaturesModal();
             
             this.quadtree = d3
@@ -272,12 +275,12 @@ const app = function() {
         },
         resetFeaturesModal() {
             this.$refs.query.value = "";
-            this.query_idx = this.descriptor_idx[0].idx;
+            this.query_idx['modal'] = this.descriptor_idx[0].idx;
             this.descriptor_idx[0].idx.forEach(i => this.descriptors[i].histogram = false)
         },
-        query(event) {
+        query(event, key) {
             const q = event.target.value;
-            this.query_idx = this.descriptor_idx[0].idx.filter(idx => this.descriptors[idx].name.includes(q));
+            this.query_idx[key] = this.descriptor_idx[keyMap[key]].idx.filter(idx => this.descriptors[idx].name.includes(q));
         },
         amountSelected() {
             return this.descriptor_idx[0].idx.filter(i => this.descriptors[i].histogram).length;
