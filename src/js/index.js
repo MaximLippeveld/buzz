@@ -213,6 +213,12 @@ const app = function() {
         showPopulation() {
             this.reColor(populationFeature, true)
         },
+        togglePopulationActive(pop) {
+            pop.active = !pop.active;
+            if(this.visualizerActive) {
+                this.histograms();
+            }
+        },
         async reColor(feature, redraw) {
             this.colorHue.selected = false;
             feature.selected = true;

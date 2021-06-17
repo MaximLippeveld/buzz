@@ -107,7 +107,7 @@
             <div id="populations" class="h-1/6 overflow-auto">
                 <template x-for="(pop, index, collection) in populations" :key="pop.id">
                     <div class="w-full flex flex-row items-center text-left mb-1 border-l-4" :id="'population-' + pop.id">
-                        <div class="population cursor-pointer flex-grow" :class="{'font-bold': pop.active}" @click="pop.active=!pop.active">
+                        <div class="population cursor-pointer flex-grow" :class="{'font-bold': pop.active}" @click="togglePopulationActive(pop)">
                             <p class="pl-1">Population <span x-text="pop.id"></span> - (size: <span x-text="pop.size"></span>)</p>
                         </div>
                         <div class="flex flex-row">
