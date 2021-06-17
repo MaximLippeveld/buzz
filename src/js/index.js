@@ -52,6 +52,7 @@ const app = function() {
         decorate: null,
         descriptor_idx: [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}],
         showFeaturesModal: false,
+        noDatasetLoaded: true,
         query_idx: [],
         visualizerActive: false,
         visualizerVisible: false,
@@ -124,6 +125,7 @@ const app = function() {
             await this.reColor(populationFeature);
             this.redraw = scatter.bind(this)();
             this.scatterLoading = false;
+            this.noDatasetLoaded = false;
             console.log("Finished", this.descriptor_data.numRows());
         },
         async brushed() {

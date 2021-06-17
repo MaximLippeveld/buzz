@@ -53,13 +53,13 @@ function headers(features) {
     return [descriptors, descriptor_idx];
 }
 
-exports.loadData = async function(csv) {
+exports.loadData = async function(path) {
 
     var header, descriptors, descriptor_idx;
 
     aq_options = {using: aq.fromArrow, as: 'arrayBuffer'}
 
-    const dt = await aq.load(f, aq_options)
+    const dt = await aq.load(path, aq_options)
 
     header = dt.columnNames();
     [descriptors, descriptor_idx] = headers(header);

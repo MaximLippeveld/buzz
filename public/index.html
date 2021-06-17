@@ -36,97 +36,109 @@
         }
     </style>
 </head>
-<body x-data="app = app()" x-init="setup()" class="w-full h-screen flex flex-row overflow-hidden relative" x-on:keydown="brush(!brushEnabled, $event)" x-on:keydown.enter="brushed()">
-    <input class="hidden" type="file" @change="load($event)" x-ref="fileSelector" />
-    <div class="w-9/12 h-full relative flex flex-col">
-        <div id="chart" class="w-full relative" :class="{ 'h-4/6': visualizerVisible, 'h-full': !visualizerVisible }" x-cloak>
-            <div id="scatter-loading" x-show="scatterLoading" class="absolute z-50 left-2/4 top-2/4 w-48 -mx-24 -my-12 h-24 font-bold">
-                Loading scatterplot...
-            </div>
-            <template x-for="annot in annotations" :key="annot.id">
-                <div :id="'annotation-' + annot.id" class="annotation absolute  z-50 p-1 bg-gray-100 origin-top-left transform">
-                    <div class="flex flex-nowrap items-center">
-                        <div class="cursor-pointer" x-on:click="cycleChannel(annot.width, annot.channels, annot.id, $event)"><i
-                                data-feather="chevron-left"></i></div>
-                        <div :id="'wrap-' + annot.id" class="overflow-hidden">
-                            <div :id="'im-' + annot.id" class="flex flex-nowrap flex-row" style="margin-left: 0px;">
-                                <template x-for="image in annot.images" :key="image">
-                                    <img :src="image" />
-                                </template>
+<body x-data="app = app()" x-init="setup()" class="w-full h-screen relative" x-on:keydown="brush(!brushEnabled, $event)" x-on:keydown.enter="brushed()">
+    
+    <!-- initial dataset selector -->
+    <div x-show="noDatasetLoaded && !scatterLoading" class="absolute z-50 left-2/4 top-1/4 w-96 -mx-48 h-48 font bold">
+        <h1 class="font-bold text-xl mb-5">Welcome to Buzz!</h1>
+        <p class="text-md mb-5">Select a dataset to get started</p>
+        <input class="p-2 bg-gray-200 w-full" accept=".feather,.csv" type="file" @change="load($event)" x-ref="fileSelector" />
+    </div>
+
+    <!-- main functionality -->
+    <div x-show="!noDatasetLoaded || scatterLoading" class="w-full h-screen flex flex-row overflow-hidden" x-cloak>
+        <div class="w-9/12 h-full relative flex flex-col">
+            <div id="chart" class="w-full relative" :class="{ 'h-4/6': visualizerVisible, 'h-full': !visualizerVisible }" x-cloak>
+                <div id="scatter-loading" x-show="scatterLoading" class="absolute z-50 left-2/4 top-1/4 w-48 -mx-24 -my-12 h-24 font-bold">
+                    Loading scatterplot...
+                </div>
+                <template x-for="annot in annotations" :key="annot.id">
+                    <div :id="'annotation-' + annot.id" class="annotation absolute  z-50 p-1 bg-gray-100 origin-top-left transform">
+                        <div class="flex flex-nowrap items-center">
+                            <div class="cursor-pointer" x-on:click="cycleChannel(annot.width, annot.channels, annot.id, $event)"><i
+                                    data-feather="chevron-left"></i></div>
+                            <div :id="'wrap-' + annot.id" class="overflow-hidden">
+                                <div :id="'im-' + annot.id" class="flex flex-nowrap flex-row" style="margin-left: 0px;">
+                                    <template x-for="image in annot.images" :key="image">
+                                        <img :src="image" />
+                                    </template>
+                                </div>
                             </div>
+                            <div class="cursor-pointer" x-on:click="cycleChannel(-annot.width, annot.channels, annot.id, $event)"><i
+                                    data-feather="chevron-right"></i></div>
                         </div>
-                        <div class="cursor-pointer" x-on:click="cycleChannel(-annot.width, annot.channels, annot.id, $event)"><i
-                                data-feather="chevron-right"></i></div>
+                    </div>
+                </template>
+            </div>
+            <div class="w-full cursor-pointer" x-show="visualizerActive" :class="{ 'absolute bottom-0': !visualizerVisible }"  @click="visualizerVisible=!visualizerVisible; liteRedraw();" x-cloak>
+                <i class="mx-auto" x-show="visualizerVisible" data-feather="chevrons-down"></i>
+                <i class="mx-auto" x-show="!visualizerVisible" data-feather="chevrons-up"></i>
+            </div>
+            <div class="h-2/6 overflow-x-auto overflow-y-hidden w-full flex flex-row relative" x-show="visualizerVisible" id="visualizer" x-cloak>
+                <div id="visualizer-loading" x-show="visualizerLoading" class="absolute z-50 left-2/4 top-2/4 w-48 -mx-24 -my-12 h-24 font-bold">
+                    Loading histograms...
+                </div>
+                <div class="flex flex-col justify-center">
+                    <button class="p-4 flex-grow-0 rounded-full active:bg-gray-300 bg-gray-200" @click="showFeaturesModal = true"><i data-feather="plus"></i></button>
+                </div>
+            </div>
+        </div>
+        <div id="controls" class="w-3/12 ml-4 h-full flex flex-col">
+            <div class="h-2/6 mb-2">
+                <div class="h-2/6 p-2">
+                    <p x-show="!noDatasetLoaded" x-text="meta.name"></p>
+                    <p x-show="!noDatasetLoaded" x-text="meta.size"></p>
+                </div>
+                <div id="toggles" class="h-4/6 flex flex-col items-start">
+                    <div class="btn-wrap" x-cloak>
+                        <button class="btn-gray" @click="brush(!brushEnabled, $event)"><i x-show="!brushEnabled" class="" data-feather="toggle-left"></i><i x-show="brushEnabled" class="" data-feather="toggle-right"></i><span class="pl-2">Enable brush</span></button>
+                    </div>
+                    <div class="btn-wrap" x-cloak>
+                        <button class="btn-gray" @click="showFeaturesModal = true"><i class="" data-feather="cpu"></i><span class="pl-2">Histograms</span></button>
+                    </div>
+                    <div class="btn-wrap" x-cloak>
+                        <button class="btn-gray" @click="showPopulation()"><i class="" data-feather="aperture"></i><span class="pl-2">Show population histograms</span></button>
+                    </div>
+                    <div class="btn-wrap" x-cloak>
+                        <button x-show="images" class="btn-wrap" @click="annotations = []"><i class="" data-feather="x-square"></i><span class="pl-2">Close annotations</span></button>
                     </div>
                 </div>
-            </template>
-        </div>
-        <div class="w-full cursor-pointer" x-show="visualizerActive" :class="{ 'absolute bottom-0': !visualizerVisible }"  @click="visualizerVisible=!visualizerVisible; liteRedraw();" x-cloak>
-            <i class="mx-auto" x-show="visualizerVisible" data-feather="chevrons-down"></i>
-            <i class="mx-auto" x-show="!visualizerVisible" data-feather="chevrons-up"></i>
-        </div>
-        <div class="h-2/6 overflow-x-auto overflow-y-hidden w-full flex flex-row relative" x-show="visualizerVisible" id="visualizer" x-cloak>
-            <div id="visualizer-loading" x-show="visualizerLoading" class="absolute z-50 left-2/4 top-2/4 w-48 -mx-24 -my-12 h-24 font-bold">
-                Loading histograms...
             </div>
-            <div class="flex flex-col justify-center">
-                <button class="p-4 flex-grow-0 rounded-full active:bg-gray-300 bg-gray-200" @click="showFeaturesModal = true"><i data-feather="plus"></i></button>
+            <div id="populations" class="h-1/6 overflow-auto">
+                <template x-for="(pop, index, collection) in populations" :key="pop.id">
+                    <div class="w-full flex flex-row items-center text-left mb-1 border-l-4" :id="'population-' + pop.id">
+                        <div class="population cursor-pointer flex-grow" :class="{'font-bold': pop.active}" @click="pop.active=!pop.active">
+                            <p class="pl-1">Population <span x-text="pop.id"></span> - (size: <span x-text="pop.size"></span>)</p>
+                        </div>
+                        <div class="flex flex-row">
+                            <button x-on:click="if (deleteAllowed) removePopulation(pop.id)" :class="{ 'cursor-not-allowed': !deleteAllowed }"><i data-feather="trash-2"></i></button>
+                            <button x-on:click="if (deleteAllowed) editPopulation(pop)" :class="{ 'cursor-not-allowed': !deleteAllowed }"><i data-feather="edit-2"></i></button>
+                        </div> 
+                    </div>
+                </template>
+            </div>
+            <div id="legend" class="h-1/6"><svg></svg></div>
+            <div id="descriptors" class="h-2/6 flex flex-row">
+                <template x-for="item in descriptor_idx" :key="item.name">
+                    <div class="h-full w-1/2 pr-2 flex flex-col">
+                        <h1 class="flex-shrink-0 capitalize font-bold" x-text="item.name"></h1>
+                        <ul class="overflow-y-auto flex-auto">
+                            <template x-for="idx in item.idx" :key="idx">
+                                <li 
+                                    @click="reColor(descriptors[idx], true)" 
+                                    class="cursor-color-picker w-full overflow-hidden overflow-ellipsis" 
+                                    :class="{'font-bold': descriptors[idx].selected, 'opacity-50': !descriptors[idx].loaded}" 
+                                    x-text="descriptors[idx].name"></li>
+                            </template>
+                        </ul>
+                    </div>
+                </template>
             </div>
         </div>
     </div>
-    <div id="controls" class="w-3/12 ml-4 h-full flex flex-col">
-        <div class="h-1/6 mb-2">
-            <div class="h-2/6 p-2">
-                <p x-text="meta.name"></p>
-                <p x-text="meta.size"></p>
-            </div>
-            <div id="toggles" class="h-4/6 flex flex-row flex-wrap items-start">
-                <div class="w-1/2 h-1/2 pr-2 pb-2" x-cloak>
-                    <button 
-                        class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" 
-                        @click="brush(!brushEnabled, $event)">
-                        <i x-show="!brushEnabled" class="" data-feather="toggle-left"></i>
-                        <i x-show="brushEnabled" class="" data-feather="toggle-right"></i>
-                        <span class="pl-2">Enable brush</span>
-                    </button>
-                </div>
-                <div class="w-1/2 h-1/2 pr-2 pb-2" x-cloak><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-col items-center" @click="showFeaturesModal = true"><i class="" data-feather="cpu"></i><span class="pl-2">Histograms</span></button></div>
-                <div class="w-1/2 h-1/2 pr-2 pb-2" x-cloak><button class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="showPopulation()"><i class="" data-feather="aperture"></i><span class="pl-2">Show populations</span></button></div>
-                <div class="w-1/2 h-1/2 pr-2 pb-2" x-cloak><button x-show="images" class="w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center" @click="annotations = []"><i class="" data-feather="x-square"></i><span class="pl-2">Close annotations</span></button></div>
-            </div>
-        </div>
-        <div id="populations" class="h-1/6 overflow-auto">
-            <template x-for="(pop, index, collection) in populations" :key="pop.id">
-                <div class="w-full flex flex-row items-center text-left mb-1 border-l-4" :id="'population-' + pop.id">
-                    <div class="population cursor-pointer flex-grow" :class="{'font-bold': pop.active}" @click="pop.active=!pop.active">
-                        <p class="pl-1">Population <span x-text="pop.id"></span> - (size: <span x-text="pop.size"></span>)</p>
-                    </div>
-                    <div class="flex flex-row">
-                        <button x-on:click="if (deleteAllowed) removePopulation(pop.id)" :class="{ 'cursor-not-allowed': !deleteAllowed }"><i data-feather="trash-2"></i></button>
-                        <button x-on:click="if (deleteAllowed) editPopulation(pop)" :class="{ 'cursor-not-allowed': !deleteAllowed }"><i data-feather="edit-2"></i></button>
-                    </div> 
-                </div>
-            </template>
-        </div>
-        <div id="legend" class="h-1/6"><svg></svg></div>
-        <div id="descriptors" class="h-3/6 flex flex-col">
-            <template x-for="item in descriptor_idx" :key="item.name">
-                <div class="h-1/2 pb-1 flex flex-col">
-                    <h1 class="flex-shrink-0 capitalize font-bold" x-text="item.name"></h1>
-                    <ul class="overflow-auto flex-auto">
-                        <template x-for="idx in item.idx" :key="idx">
-                            <li 
-                                @click="reColor(descriptors[idx], true)" 
-                                class="cursor-pointer" 
-                                :class="{'font-bold': descriptors[idx].selected, 'opacity-50': !descriptors[idx].loaded}" 
-                                x-text="descriptors[idx].name"></li>
-                        </template>
-                    </ul>
-                </div>
-            </template>
-        </div>
-    </div>
-    <div class="w-full h-full p-5 absolute bg-black bg-opacity-70" x-show="showFeaturesModal" x-cloak>
+
+    <!-- feature selection modal -->
+    <div class="w-full h-full p-5 top-0 absolute bg-black bg-opacity-50" x-show="showFeaturesModal" x-cloak>
         <div id="descriptors" @click.away="showFeaturesModal = false" class="w-1/4 p-5 h-full bg-white mx-auto flex flex-col">
             <p class="font-bold mb-5 text-2xl text-center">
                 Select features
