@@ -30,7 +30,7 @@ const backend = require("public/app.js");
 
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
 const baseBrushRange = [[0,0], [0,0]]
-const keyMap = {"feature": 0, "meta": 1};
+const keyMap = {"feature": 0, "meta": 1, "modal": 0};
 
 const app = function() {
     return {
