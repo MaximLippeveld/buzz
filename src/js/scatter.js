@@ -36,7 +36,6 @@ export const scatter = function() {
     const xScaleOriginal = xScale.copy();
     const yScaleOriginal = yScale.copy();
 
-    var dotSize = 1;
     const zoom = d3.zoom()
         .on("zoom", function(event, d) {
             xScale.domain(event.transform.rescaleX(xScaleOriginal).domain());
@@ -59,7 +58,7 @@ export const scatter = function() {
                     .crossValue(d => d.dim_1)
                     .mainValue(d => d.dim_2)
                     .type(d3.symbolCircle)
-                    .size(dotSize)
+                    .size(this.dotSize)
                     .decorate(function(program) {
                         this.fillColor(program);
 

@@ -39,6 +39,7 @@ const app = function() {
         currAnnotId: 1,
         populations: [],
         annotations: [],
+        dotSize: 10,
         scatterLoading: false,
         visualizerLoading: false,
         brushEnabled: false,
@@ -76,6 +77,7 @@ const app = function() {
             this.populations = [];
             this.descriptor_data.derive({"selected": 0});
 
+            this.dotSize = 1;
             this.scatterLoading = false;
             this.visualizerLoading = false;
             this.brushEnabled = false;
