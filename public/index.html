@@ -41,8 +41,14 @@
     <!-- initial dataset selector -->
     <div x-show="noDatasetLoaded && !scatterLoading" class="absolute z-50 left-2/4 top-1/4 w-96 -mx-48 h-48 font bold">
         <h1 class="font-bold text-xl mb-5">Welcome to Buzz!</h1>
-        <p class="text-md mb-5">Select a dataset to get started</p>
-        <input class="p-2 bg-gray-200 w-full" accept=".feather,.csv" type="file" @change="load($event)" x-ref="fileSelector" />
+        <div class="px-3">
+            <p class="text-md mb-1">Select a dataset to get started</p>
+            <input class="p-2 bg-gray-200 w-full" accept=".feather,.csv" type="file" @change="load($event)" x-ref="fileSelector" />
+        </div>
+        <hr class="my-5 border-b-2 border-gray-200">
+        <div class="px-3">
+            <button @click="load()" class="w-full p-2 bg-gray-200 text-center">Or open a demo dataset</button>
+        </div>
     </div>
 
     <!-- main functionality -->
