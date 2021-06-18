@@ -43,7 +43,7 @@
         <h1 class="font-bold text-xl mb-5">Welcome to Buzz!</h1>
         <div class="px-3">
             <p class="text-md mb-1">Select a dataset to get started</p>
-            <input class="p-2 bg-gray-200 w-full" accept=".feather,.csv" type="file" @change="load($event)" x-ref="fileSelector" />
+            <input class="p-2 bg-gray-200 w-full" accept=".feather,.csv" type="file" @click="$event.target.value=null" @change="load($event)" x-ref="fileSelector" />
         </div>
         <hr class="my-5 border-b-2 border-gray-200">
         <div class="px-3">
