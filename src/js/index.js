@@ -71,6 +71,29 @@ const app = function() {
                 .value(r => webglColor(this.colorScale(r), 0.9))
                 .data(this.descriptor_data.array(this.colorHue.name));
         },
+        resetState() {
+
+            this.populations = [];
+            this.descriptor_data.derive({"selected": 0});
+
+            this.scatterLoading = false;
+            this.visualizerLoading = false;
+            this.brushEnabled = false;
+            this.jsDivergenceError = false;
+            this.deleteAllowed = true;
+            this.colorScale = null;
+            this.colorHue = populationFeature;
+            this.brushRange = baseBrushRange;
+            this.currentPopulation = null;
+            this.fillColor = null;
+            this.showFeaturesModal = false;
+            this.showCredits = false;
+            this.noDatasetLoaded = true;
+            this.query_idx = {'modal': []};
+            this.visualizerActive = false;
+            this.visualizerVisible = false;
+            this.images = false;
+        },
         setup() {
             feather.replace();
             
@@ -100,6 +123,10 @@ const app = function() {
             nw.Window.get().menu = menu;
         },
         async load(event) {
+
+            if(!this.noDatasetLoaded) {
+                this.resetState();
+            }
 
             this.scatterLoading = true;
 
