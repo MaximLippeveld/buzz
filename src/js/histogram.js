@@ -69,12 +69,10 @@ export const histogram_d3 = async function(features) {
 
         var feat = descriptor_data.array(feature);
         var bins = binning.domain(domain)(feat);
-        var maxY = d3.max(bins, d => d.length);
-        var popScale = d3.scaleLinear().domain([0, maxY]).range([0,1]);
         var allBins = bins.map(b => {
             b.color = d3.color("lightgrey");
             b.opacity = 0.2;
-            b.height = popScale(b.length);
+            b.height = b.length/descriptor_data.numRows();
             return b;
         });
 
@@ -86,11 +84,9 @@ export const histogram_d3 = async function(features) {
 
             feat = part.map(getter)
             bins = binning.domain(domain)(feat)
-            maxY = d3.max(bins, d => d.length);
-            popScale = d3.scaleLinear().domain([0, maxY]).range([0,1]);
-            allBins = allBins.concat(bins.map(b => {
+            Bins = allBins.concat(bins.map(b => {
                 b.color = col;
-                b.height = popScale(b.length);
+                b.height = b.length/part.length;
                 return b;
             }));
         })
