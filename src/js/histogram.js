@@ -31,17 +31,16 @@ export const histogram_d3 = async function(features) {
     const binning = d3.bin()
       .value(d => d)
       .thresholds(30);
-    var xScale = d3.scaleLinear().rangeRound([padding, width-padding]);
+    var xScale = d3.scaleLinear().range([padding, width]);
     var yScale = d3.scaleLinear().range([height-padding, padding]).domain([0,1]);
     const populations = this.populations.filter(pop => pop.active);
     const popIds = populations.map(pop => pop.id);
 
-    const descriptor_data = this.descriptor_data
-    .params({"pops": popIds})
-    .filter((r, $) => includes($.pops, r.selected));
+    const descriptor_data = this.descriptor_data;
     
-    var grouped = descriptor_data
-    .params({"binning": binning})
+    var grouped = this.descriptor_data
+    .params({"pops": popIds})
+    .filter((r, $) => includes($.pops, r.selected))
     .groupby("selected");
 
     var groups = grouped.groups();
@@ -57,28 +56,37 @@ export const histogram_d3 = async function(features) {
             .attr("text-anchor", "middle")
             .text(d => d)
 
-
         var domain = descriptor_data
         .rollup({max: op.max(feature), min: op.min(feature)})
         .objects()[0];
         domain = [domain["min"], domain["max"]];
+        const diff = domain[1] - domain[0];
+        domain[0] -= diff*0.05;
+        domain[1] += diff*0.05;
 
-        var maxY, feat, bins, popId, col, popScale;
-        var allBins = [];
+        var popId, col;
         var getter = descriptor_data.getter(feature);
+
+        var feat = descriptor_data.array(feature);
+        var bins = binning.domain(domain)(feat);
+        var allBins = bins.map(b => {
+            b.color = d3.color("lightgrey");
+            b.opacity = 0.2;
+            b.height = b.length/descriptor_data.numRows();
+            return b;
+        });
+
         parts.forEach((part, idx) => {
 
             popId = groups.get[0](groups.rows[idx])
             col = d3.color(populations[popIds.indexOf(popId)].color);
-            col.opacity = 0.5;
+            col.opacity = 0.4;
 
             feat = part.map(getter)
             bins = binning.domain(domain)(feat)
-            maxY = d3.max(bins, d => d.length);
-            popScale = d3.scaleLinear().domain([0, maxY]).range([0,1]);
             allBins = allBins.concat(bins.map(b => {
                 b.color = col;
-                b.height = popScale(b.length);
+                b.height = b.length/part.length;
                 return b;
             }));
         })
