@@ -84,7 +84,7 @@ export const histogram_d3 = async function(features) {
 
             feat = part.map(getter)
             bins = binning.domain(domain)(feat)
-            Bins = allBins.concat(bins.map(b => {
+            allBins = allBins.concat(bins.map(b => {
                 b.color = col;
                 b.height = b.length/part.length;
                 return b;
