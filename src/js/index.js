@@ -39,7 +39,7 @@ const app = function() {
         currAnnotId: 1,
         populations: [],
         annotations: [],
-        dotSize: 10,
+        dotSize: 1,
         scatterLoading: false,
         visualizerLoading: false,
         brushEnabled: false,
@@ -155,10 +155,13 @@ const app = function() {
 
             this.descriptor_data = this.descriptor_data.derive({"selected": 0});
             await this.reColor(populationFeature);
-            this.redraw = scatter.bind(this)();
+            this.runScatter();
             this.scatterLoading = false;
             this.noDatasetLoaded = false;
             console.log("Finished", this.descriptor_data.numRows());
+        },
+        runScatter() {
+            this.redraw = scatter.bind(this)();
         },
         async brushed() {
             await this.reColor(populationFeature, false);

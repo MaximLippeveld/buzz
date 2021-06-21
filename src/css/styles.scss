@@ -24,7 +24,7 @@
         @apply w-full h-full py-2 px-5 bg-gray-200 active:bg-gray-300 rounded flex flex-row items-center
     }
     .btn-wrap {
-        @apply w-full pr-2 pb-2
+        @apply w-full pr-2 mb-2
     }
     .cursor-color-picker {
         cursor: url(/public/assets/color-picker.svg) 0 24, pointer;
