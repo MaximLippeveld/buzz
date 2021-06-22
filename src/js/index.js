@@ -91,7 +91,7 @@ const app = function() {
             feather.replace();
             
             var menu = new nw.Menu({ type: "menubar"});
-            var fileMenu = new nw.Menu()
+            var fileMenu = new nw.Menu();
             fileMenu.append(new nw.MenuItem({
                 label: "Open",
                 click: () => {
@@ -109,9 +109,22 @@ const app = function() {
                 label: "Quit",
                 click: () => nw.Window.get().close()
             }))
+
+            var aboutMenu = new nw.Menu();
+            aboutMenu.append(new nw.MenuItem({
+                label: "Credits",
+                click: () => {
+                    this.showCredits = true;
+                }
+            }))
+
             menu.append(new nw.MenuItem({
                 label: "File",
                 submenu: fileMenu
+            }));
+            menu.append(new nw.MenuItem({
+                label: "About",
+                submenu: aboutMenu
             }));
             nw.Window.get().menu = menu;
         },
@@ -370,20 +383,6 @@ const app = function() {
                     el2.style.height = value.height + "px";
                 })
             }
-
-            // d3.json("http://127.0.0.1:5000/image/" + data.meta_dir).then((response) => {
-            //     if (!hold) app.annotations = []
-
-            //     this.annotations.push({
-            //         id: app.currAnnotId++, 
-            //         images: response.data,
-            //         pos: {x: x, y: y},
-            //         width: response.width,
-            //         height: response.height,
-            //         channels: response.channels
-            //     })
-            //     this.$nextTick(() => post())
-            // });
         }
     }
 };
