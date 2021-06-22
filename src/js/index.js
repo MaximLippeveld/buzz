@@ -34,40 +34,6 @@ const keyMap = {"feature": 0, "meta": 1, "modal": 0, "dims": 0};
 
 const app = function() {
     return {
-
-        // placeholders
-        meta: {size: 0, name: ""},
-        data: [],
-        currAnnotId: 1,
-        populations: [],
-        annotations: [],
-        dotSize: 1,
-        colorScale: null,
-        colorHue: populationFeature,
-        brushRange: baseBrushRange,
-        currentPopulation: null,
-        fillColor: null,
-        redraw: null,
-        decorate: null,
-        descriptor_idx: [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}],
-        query_idx: {'modal': [], 'dims': []},
-        dims: [null, null],
-        i: 0,
-
-        // boolean switches
-        showFeaturesModal: false,
-        showCredits: false,
-        showDimsSelector: false,
-        noDatasetLoaded: true,
-        scatterLoading: false,
-        visualizerLoading: false,
-        visualizerActive: false,
-        visualizerVisible: false,
-        brushEnabled: false,
-        jsDivergenceError: false,
-        deleteAllowed: true,
-        images: false,
-
         // functions
         liteRedraw() {
             console.log("redraw");
@@ -82,6 +48,10 @@ const app = function() {
                 .data(this.descriptor_data.array(this.colorHue.name));
         },
         resetState() {
+
+            if(("populations" in this) && (this.populations.length > 0)) {
+                this.descriptor_data.derive({"selected": 0});
+            }
 
             // placeholders
             this.meta = {size: 0, name: ""};
@@ -115,10 +85,9 @@ const app = function() {
             this.jsDivergenceError = false;
             this.deleteAllowed = true;
             this.images = false;
-
-            this.descriptor_data.derive({"selected": 0});
         },
         setup() {
+            this.resetState();
             feather.replace();
             
             var menu = new nw.Menu({ type: "menubar"});
@@ -148,9 +117,7 @@ const app = function() {
         },
         async loadPreDimsSelect(event) {
 
-            if(!this.noDatasetLoaded) {
-                this.resetState();
-            }
+            this.resetState();
 
             console.time("data");
             [
