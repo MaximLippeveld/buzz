@@ -28,10 +28,10 @@ export const scatter = function() {
     canvas.height = height;
     
     const xScale = d3.scaleLinear()
-            .domain(d3.extent(this.descriptor_data.array("feat_umap_0")));
+            .domain(d3.extent(this.descriptor_data.array(this.dims[0])));
 
     const yScale = d3.scaleLinear()
-            .domain(d3.extent(this.descriptor_data.array("feat_umap_1")));
+            .domain(d3.extent(this.descriptor_data.array(this.dims[1])));
 
     const xScaleOriginal = xScale.copy();
     const yScaleOriginal = yScale.copy();
@@ -150,15 +150,18 @@ export const scatter = function() {
         }.bind(this));
         
     function redraw() {
+        var mapping = {columns: {index: "id"}};
+        mapping["columns"][this.dims[0]] = "dim_1";
+        mapping["columns"][this.dims[1]] = "dim_2";
+
         d3
             .select("#chart")
             .datum({
-                series: this.descriptor_data.objects({columns: {"feat_umap_0": "dim_1", "feat_umap_1": "dim_2"}}),
+                series: this.descriptor_data.objects(mapping),
                 brushRange: this.brushRange
             })
             .call(chart);
     }
-    redraw.bind(this)();
 
     return redraw.bind(this);
 }

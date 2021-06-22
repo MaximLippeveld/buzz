@@ -30,21 +30,18 @@ const backend = require("public/app.js");
 
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
 const baseBrushRange = [[0,0], [0,0]]
-const keyMap = {"feature": 0, "meta": 1, "modal": 0};
+const keyMap = {"feature": 0, "meta": 1, "modal": 0, "dims": 0};
 
 const app = function() {
     return {
+
+        // placeholders
         meta: {size: 0, name: ""},
         data: [],
         currAnnotId: 1,
         populations: [],
         annotations: [],
         dotSize: 1,
-        scatterLoading: false,
-        visualizerLoading: false,
-        brushEnabled: false,
-        jsDivergenceError: false,
-        deleteAllowed: true,
         colorScale: null,
         colorHue: populationFeature,
         brushRange: baseBrushRange,
@@ -53,13 +50,25 @@ const app = function() {
         redraw: null,
         decorate: null,
         descriptor_idx: [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}],
+        query_idx: {'modal': [], 'dims': []},
+        dims: [null, null],
+        i: 0,
+
+        // boolean switches
         showFeaturesModal: false,
         showCredits: false,
+        showDimsSelector: false,
         noDatasetLoaded: true,
-        query_idx: {'modal': []},
+        scatterLoading: false,
+        visualizerLoading: false,
         visualizerActive: false,
         visualizerVisible: false,
+        brushEnabled: false,
+        jsDivergenceError: false,
+        deleteAllowed: true,
         images: false,
+
+        // functions
         liteRedraw() {
             console.log("redraw");
             d3.select('d3fc-group')
@@ -74,27 +83,40 @@ const app = function() {
         },
         resetState() {
 
+            // placeholders
+            this.meta = {size: 0, name: ""};
+            this.data = [];
+            this.currAnnotId = 1;
             this.populations = [];
-            this.descriptor_data.derive({"selected": 0});
-
+            this.annotations = [];
             this.dotSize = 1;
-            this.scatterLoading = false;
-            this.visualizerLoading = false;
-            this.brushEnabled = false;
-            this.jsDivergenceError = false;
-            this.deleteAllowed = true;
             this.colorScale = null;
             this.colorHue = populationFeature;
             this.brushRange = baseBrushRange;
             this.currentPopulation = null;
             this.fillColor = null;
+            this.redraw = null;
+            this.decorate = null;
+            this.descriptor_idx = [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}];
+            this.query_idx = {'modal': [], 'dims': []};
+            this.dims = [null, null];
+            this.i = 0;
+
+            // boolean switches
             this.showFeaturesModal = false;
             this.showCredits = false;
+            this.showDimsSelector = false;
             this.noDatasetLoaded = true;
-            this.query_idx = {'modal': []};
+            this.scatterLoading = false;
+            this.visualizerLoading = false;
             this.visualizerActive = false;
             this.visualizerVisible = false;
+            this.brushEnabled = false;
+            this.jsDivergenceError = false;
+            this.deleteAllowed = true;
             this.images = false;
+
+            this.descriptor_data.derive({"selected": 0});
         },
         setup() {
             feather.replace();
@@ -124,13 +146,11 @@ const app = function() {
             }));
             nw.Window.get().menu = menu;
         },
-        async load(event) {
+        async loadPreDimsSelect(event) {
 
             if(!this.noDatasetLoaded) {
                 this.resetState();
             }
-
-            this.scatterLoading = true;
 
             console.time("data");
             [
@@ -145,23 +165,42 @@ const app = function() {
             this.meta["name"] = event.target.files[0].path;
             _.forEach(this.descriptors, (d, k) => d.loaded=true);
             this.descriptor_idx.forEach(d => this.query_idx[d.name] = d.idx);
-            this.resetFeaturesModal();
-            
-            this.quadtree = d3
-                .quadtree()
-                .x(d => d.dim_1)
-                .y(d => d.dim_2)
-                .addAll(this.descriptor_data.objects({columns: {index: "id", feat_umap_0: "dim_1", feat_umap_1: "dim_2"}}));
+            this.resetFeatureSelectors();
+            this.query_idx['dims'] = this.descriptor_idx[0].idx;
 
-            this.descriptor_data = this.descriptor_data.derive({"selected": 0});
-            await this.reColor(populationFeature);
-            this.runScatter();
-            this.scatterLoading = false;
             this.noDatasetLoaded = false;
-            console.log("Finished", this.descriptor_data.numRows());
+            this.showDimsSelector = true;
+        },
+        loadPostDimsSelect() {
+            this.showDimsSelector = false;
+            this.scatterLoading = true;
+            var mapping = {columns: {index: "id"}};
+            mapping["columns"][this.dims[0]] = "dim_1";
+            mapping["columns"][this.dims[1]] = "dim_2";
+
+            this.$nextTick(async () => { 
+                this.quadtree = d3
+                    .quadtree()
+                    .x(d => d.dim_1)
+                    .y(d => d.dim_2)
+                    .addAll(this.descriptor_data.objects(mapping));
+
+                this.descriptor_data = this.descriptor_data.derive({"selected": 0});
+                await this.reColor(populationFeature);
+                this.runScatter();
+                this.scatterLoading = false;
+                this.noDatasetLoaded = false;
+                console.log("Finished", this.descriptor_data.numRows());
+            })
         },
         runScatter() {
             this.redraw = scatter.bind(this)();
+            this.redraw();
+        },
+        selectDim(dim) {
+            this.dims[this.i] = dim.name;
+            this.i += 1;
+            this.i %=2;
         },
         async brushed() {
             await this.reColor(populationFeature, false);
@@ -305,9 +344,11 @@ const app = function() {
                 if (progress) progress.update(1)
             }))
         },
-        resetFeaturesModal() {
-            this.$refs.query.value = "";
+        resetFeatureSelectors() {
+            this.$refs.queryDims.value = "";
+            this.$refs.queryModal.value = "";
             this.query_idx['modal'] = this.descriptor_idx[0].idx;
+            this.query_idx['dims'] = this.descriptor_idx[0].idx;
             this.descriptor_idx[0].idx.forEach(i => this.descriptors[i].histogram = false)
         },
         query(event, key) {
