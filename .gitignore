@@ -121,3 +121,7 @@ __pycache__
 .pytest_cache
 *.egg-info
 build/
+
+*.fcs
+*.feather
+*.ipynb_checkpoints
