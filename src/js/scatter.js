@@ -57,7 +57,6 @@ export const scatter = function() {
                     .equals((a, b) => a === b)
                     .crossValue(d => d.dim_1)
                     .mainValue(d => d.dim_2)
-                    .type(d3.symbolCircle)
                     .size(this.dotSize)
                     .decorate(function(program) {
                         this.fillColor(program);
