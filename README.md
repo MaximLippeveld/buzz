@@ -1,5 +1,7 @@
 # Buzz: an interactive tool for feature space exploration
 
+![Demonstration](demo.gif)
+
 High-dimensional datasets are often squeezed through dimensionality reduction
 algorithms like PCA, UMAP, T-SNE or others to visualize them on a 2D scatterplot. 
 These procedures let us expose heterogeneity in datasets. However, we would
