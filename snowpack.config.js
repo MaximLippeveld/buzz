@@ -19,7 +19,7 @@ module.exports = {
     /* ... */
   },
   buildOptions: {
-    out: "build",
+    out: "buzz",
     htmlFragments: true
   },
 };
