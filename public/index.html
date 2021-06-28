@@ -192,7 +192,7 @@
             </p>
             <div class="flex flex-row mb-2">
                 <input class="focus:outline-none p-2 bg-gray-100 w-full" placeholder="Search..." type="text" @input="query($event, 'modal')" x-ref="queryModal">
-                <button class="focus:outline-none ml-4 p-2 flex-grow-0 bg-gray-100" x-show="amountSelected() > 0" @click="resetFeaturesModal()"><i data-feather="refresh-cw"></i></button>
+                <button class="focus:outline-none ml-4 p-2 flex-grow-0 bg-gray-100" x-show="amountSelected() > 0" @click="resetFeatureSelectors()"><i data-feather="refresh-cw"></i></button>
             </div>
             <ul class="overflow-auto mb-5">
                 <template x-for="idx in query_idx['modal']" :key="idx">
