@@ -130,6 +130,13 @@ const app = function() {
         },
         async loadPreDimsSelect(event) {
 
+            var path;
+            if (event == undefined) {
+                path = "./public/assets/demo.feather";
+            } else {
+                path = event.target.files[0].path;
+            }
+
             this.resetState();
 
             console.time("data");
@@ -138,11 +145,11 @@ const app = function() {
                 this.descriptor_data, 
                 this.descriptor_idx, 
                 this.descriptors,
-            ] = await backend.loadData(event.target.files[0].path);
+            ] = await backend.loadData(path);
             console.timeEnd("data");
             
             this.meta["size"] = this.descriptor_data.numRows();
-            this.meta["name"] = event.target.files[0].path;
+            this.meta["name"] = path;
             _.forEach(this.descriptors, (d, k) => d.loaded=true);
             this.descriptor_idx.forEach(d => this.query_idx[d.name] = d.idx);
             this.resetFeatureSelectors();
