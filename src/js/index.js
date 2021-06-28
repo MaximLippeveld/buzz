@@ -23,10 +23,12 @@ import * as fc from 'd3fc';
 import { histogram_d3 } from './histogram';
 import feather from 'feather-icons';
 import * as _ from 'lodash';
-            
+
+import '/public/css/styles.css';
+ 
 window._ = _
 
-const backend = require("public/app.js");
+const backend = require("App");
 
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
 const baseBrushRange = [[0,0], [0,0]]
@@ -132,7 +134,7 @@ const app = function() {
 
             var path;
             if (event == undefined) {
-                path = "public/assets/demo.feather";
+                path = "demo.feather";
             } else {
                 path = event.target.files[0].path;
             }

@@ -2,7 +2,7 @@
   "name": "buzz",
   "version": "0.1.0",
   "description": "snowpack",
-  "main": "public/index.html",
+  "main": "index.html",
   "author": "Maxim Lippeveld",
   "license": "MIT",
   "window": {
@@ -28,9 +28,5 @@
     "linux": {},
     "linux32": {},
     "linux64": {}
-  },
-  "dependencies": {
-    "arquero": "^4.8.4",
-    "lodash": "^4.17.21"
   }
 }
