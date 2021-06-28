@@ -19,8 +19,9 @@ of your dataset by:
 
 **lightweight** Buzz is entirely written in JavaScript making it a snappy and lightweight tool.
 
-**CSV** Compatible with any language. Just export to CSV and import in Buzz. 
-Thanks to Papaparse, loading times are decent. Currently, a rewrite using *Arquero* is underway.
+**Arquero** Compatible with any language thanks to Arquero and Apache Arrow. Just export 
+your dataset to an Arrow-file and import in Buzz. See [USAGE](USAGE.md) for more info
+on how to import your dataset.
 
 ## Building blocks of Buzz
 
@@ -44,24 +45,14 @@ HTML documents.
 standalone desktop apps with access to native system APIs. In the near future, Buzz will
 be available as a NW.js desktop app.
 
-**Paparse** Currently, only CSV input is supported. Papaparse is the most performant
-JavaScript library for loading CSV files.
-
 **Arquero** This is a fast JavaScript library for loading array-backed data tables.
 Buzz is being rewritten to use Arquero under the hood for faster data processing, and
 to allow Apache Arrow input formats.
 
 ## Buzz roadmap
 
-Buzz is in alpha-phase. The initial features and aim of the app are laid out, and 
-a first working prototype is implemented.
-
-The next milestone is the beta-phase. The following needs to 
-be implemented to reach this phase:
-- Buzz needs to be fully backed by Arquero, allowing for input in CSV 
-  or Apache Arrow format.
-- Users need to be able to load their own datasets with a simple file selector.
-- New users should be given the option to load a demo dataset.
+Buzz is in beta-phase. The initial features and aim of the app are laid out, and 
+a first functional version of the app is implemented.
 
 In the long term, Buzz functionality needs to be expanded. However, the focus
 should always remain on the *exploration* of low-dimensional embeddings on a local
