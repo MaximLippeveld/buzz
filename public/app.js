@@ -16,10 +16,10 @@
 // along with Buzz.  If not, see <http://www.gnu.org/licenses/>.
 
 const aq = require("arquero");
-const _ = require("lodash");
+const sortedIndexOf = require("lodash/sortedIndexOf");
 
 aq.addFunction("sortedIncludesWithRemove", function(arr, i) {
-    var idx = _.sortedIndexOf(arr, i)
+    var idx = sortedIndexOf(arr, i)
     if (idx != -1) {
         arr = arr.splice(idx, 1)
         return true
@@ -65,11 +65,4 @@ exports.loadData = async function(path) {
     [descriptors, descriptor_idx] = headers(header);
 
     return [header, dt, descriptor_idx, descriptors];
-}
-
-// https://stackoverflow.com/questions/28834835/readfile-in-base64-nodejs
-exports.loadImages = function(url) {
-    const fs = require('fs');
-    const contents = fs.readFileSync(url, {encoding: 'base64'});
-    console.log(contents);
 }

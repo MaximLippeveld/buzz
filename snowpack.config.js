@@ -6,14 +6,13 @@ module.exports = {
   exclude: ['**/node_modules/**/*'],
   mount: {
     "src/js": {url: "/bin"},
-    "public": {url: "/public", static: true, resolve: false},
-    "config": {url: "/", static: true, resolve: false}
+    "public": {url: "/public"},
+    "config": {url: "/"},
   },
   plugins: [
-    // ['@snowpack/plugin-webpack', {}]
   ],
   packageOptions: {
-    /* ... */
+    polyfillNode: true
   },
   devOptions: {
     /* ... */
