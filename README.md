@@ -10,6 +10,8 @@ of your dataset by:
 - coloring it according to features you provide,
 - and selecting populations between which you can compare feature distributions.
 
+See [USAGE](USAGE.md) for instructions on how to use Buzz.
+
 ## Features
 **Brushing** Select groups of points and compare their feature distributions using histograms.
 
