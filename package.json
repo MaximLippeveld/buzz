@@ -61,7 +61,7 @@
     "postcss-cli": "^8.3.1",
     "postcss-scss": "^3.0.4",
     "rimraf": "^3.0.2",
-    "snowpack": "^3.0.13",
+    "snowpack": "^3.6.2",
     "tailwindcss": "^2.0.1",
     "watch": "^1.0.2"
   }

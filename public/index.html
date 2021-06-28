@@ -28,7 +28,7 @@
     <meta name="author" content="Maxim Lippeveld"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/public/css/styles.css" />
     <script type="text/javascript" ></script>
     <style>
         [x-cloak] {
@@ -208,7 +208,7 @@
     </div>
 
     <!-- Credits section -->
-    <div class="w-full h-full absolute bg-black bg-opacity-50" x-show="showCredits" x-cloak>
+    <div class="w-full h-full absolute top-0 bg-black bg-opacity-50" x-show="showCredits" x-cloak>
         <div @click.away="showCredits=false" class="absolute z-50 left-2/4 top-1/4 w-96 -mx-48 h-96 rounded bg-white p-5">
             <div class="btn-wrap">
                 <button class="btn-gray w-auto" @click="showCredits = false"><i data-feather="x"></i></button>

@@ -26,7 +26,7 @@ import * as _ from 'lodash';
             
 window._ = _
 
-const backend = require("app.js");
+const backend = require("public/app.js");
 
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
 const baseBrushRange = [[0,0], [0,0]]
@@ -132,7 +132,7 @@ const app = function() {
 
             var path;
             if (event == undefined) {
-                path = "./assets/demo.feather";
+                path = "public/assets/demo.feather";
             } else {
                 path = event.target.files[0].path;
             }
