@@ -25,8 +25,8 @@ import feather from 'feather-icons';
 import * as _ from 'lodash';
 
 import '/public/css/styles.css';
-import demo from '/public/assets/demo.feather';
-import '/config/package.json';
+import demo from '/assets/demo.feather';
+import '/assets/package.json';
  
 window._ = _
 
