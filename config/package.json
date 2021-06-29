@@ -1,7 +1,7 @@
 {
   "name": "buzz",
-  "version": "0.1.0",
-  "description": "snowpack",
+  "version": "0.1.1",
+  "description": "Interactive visualization tool for exploring dimensionality reduced data.",
   "main": "public/index.html",
   "author": "Maxim Lippeveld",
   "license": "MIT",

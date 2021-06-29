@@ -1,7 +1,7 @@
 {
   "name": "buzz",
-  "version": "0.1.0",
-  "description": "Interactive visualization tool for dimensionality reduced imaging data.",
+  "version": "0.1.1",
+  "description": "Interactive visualization tool for dimensionality reduced data.",
   "main": "http://localhost:8080/public/index.html",
   "node-remote": "http://localhost:8080",
   "chromium-args": "--enable-spell-checking --remote-debugging-port=9222",
