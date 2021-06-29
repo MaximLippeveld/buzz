@@ -1,20 +1,31 @@
 const path = require('path');
+const exec = require('child_process').exec;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = (env) => {
     return {
-        mode: env.WEBPACK_SERVE ? "development" : "pruduction",
-        resolve: {
-            alias: {
-                app: path.resolve(__dirname, './src/js/app.js')
+        mode: env.WEBPACK_SERVE ? "development" : "production",
+        // resolve: {
+        //     alias: {
+        //         app: path.resolve(__dirname, './src/js/app.js')
+        //     }
+        // },
+        devServer: {
+            contentBase: path.resolve(__dirname, 'buzz/package.nw'),
+            port: 8080,
+            after: () => {
+                exec('nw .');
             }
         },
         devtool: env.WEBPACK_SERVE ? "inline-source-map" : "source-map",
-        entry: './src/js/index.js',
+        entry: {
+            index: './src/js/index.js',
+            app: './src/js/app.js'
+        },
         context: __dirname,
         output: {
-            filename: 'index.js',
+            filename: '[name].js',
             path: path.resolve(__dirname, 'buzz/package.nw'),
         },
         plugins: [

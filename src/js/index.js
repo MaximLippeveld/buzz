@@ -30,7 +30,7 @@ import '/assets/package.json';
  
 window._ = _
 
-const backend = require("app");
+const backend = nw.require("app.js");
 
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
 const baseBrushRange = [[0,0], [0,0]]
