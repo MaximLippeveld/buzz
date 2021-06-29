@@ -132,7 +132,7 @@ const app = function() {
 
             var path;
             if (event == undefined) {
-                path = "public/assets/demo.feather";
+                path = "assets/demo.feather";
             } else {
                 path = event.target.files[0].path;
             }

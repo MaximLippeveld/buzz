@@ -8,9 +8,9 @@ module.exports = {
     "src/js": {url: "/bin"},
     "public": {url: "/public"},
     "config": {url: "/"},
+    "assets": {url: "/assets"}
   },
-  plugins: [
-  ],
+  plugins: [],
   packageOptions: {
     polyfillNode: true
   },
