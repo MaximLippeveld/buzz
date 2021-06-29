@@ -1,5 +1,7 @@
 #/bin/sh
 
+[ -d "./buzz" ] && rm -r "./buzz"
+
 # build tailwind and snowpack
 npm run build
 
