@@ -25,10 +25,12 @@ import feather from 'feather-icons';
 import * as _ from 'lodash';
 
 import '/public/css/styles.css';
+import demo from '/public/assets/demo.feather';
+import '/config/package.json';
  
 window._ = _
 
-const backend = require("App");
+const backend = require("app");
 
 const populationFeature = {"name": "selected", "selected": true, "loaded": true, "type": "nominal"};
 const baseBrushRange = [[0,0], [0,0]]
@@ -134,7 +136,7 @@ const app = function() {
 
             var path;
             if (event == undefined) {
-                path = "demo.feather";
+                path = demo;
             } else {
                 path = event.target.files[0].path;
             }

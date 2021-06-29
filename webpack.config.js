@@ -3,9 +3,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
+    mode: "development",
     resolve: {
         alias: {
-            App: path.resolve(__dirname, './src/js/app.js')
+            app: path.resolve(__dirname, './src/js/app.js')
         }
     },
     entry: './src/js/index.js',
@@ -34,8 +35,19 @@ module.exports = {
                 ]
             },
             {
-                test: /\.svg$/,
-                use: 'file-loader'
+                test: /\.(svg|feather)$/,
+                type: 'asset/resource',
+                generator: {
+                    filename: 'assets/[hash][ext][query]'
+                }
+            },
+            {
+                // nw.js package file
+                test: /assets\/package\.json$/,
+                type: 'asset/resource',
+                generator: {
+                    filename: 'package.json'
+                }
             }
         ]
     }
