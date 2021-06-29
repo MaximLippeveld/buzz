@@ -2,7 +2,7 @@
   "name": "buzz",
   "version": "0.1.0",
   "description": "Interactive visualization tool for dimensionality reduced imaging data.",
-  "main": "http://localhost:8080/public/index.html",
+  "main": "http://localhost:8080/index.html",
   "node-remote": "http://localhost:8080",
   "chromium-args": "--enable-spell-checking --remote-debugging-port=9222",
   "scripts": {
@@ -11,8 +11,8 @@
     "nw-test-dist": "nw ./dist --remote-debugging-port=9222",
     "dev": "concurrently \"npm run dev:web\" \"npm run nw\"",
     "dev:nw": "concurrently \"npm run dev:none\" \"npm run nw\"",
-    "dev:web": "webpack dev",
-    "dev:none": "webpack dev --open none",
+    "dev:web": "webpack serve",
+    "dev:none": "webpack serve --port 8080",
     "dev:html": "watch \"npm run dev:sass && npm run dev:postcss\" public -p '/.*css.*/'",
     "dev:sass": "node-sass --output-style expanded --source-map true src/css/styles.scss public/css/styles.css",
     "dev:postcss": "postcss --config . --map true --output public/css/styles.css public/css/styles.css",
@@ -68,6 +68,7 @@
     "svg-loader": "^0.0.2",
     "tailwindcss": "^2.0.1",
     "watch": "^1.0.2",
-    "webpack-cli": "^4.7.2"
+    "webpack-cli": "^4.7.2",
+    "webpack-dev-server": "^3.11.2"
   }
 }
