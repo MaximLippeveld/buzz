@@ -1,17 +1,17 @@
 // Copyright (C) 2021 Maxim Lippeveld
-// 
+//
 // This file is part of Buzz.
-// 
+//
 // Buzz is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Buzz is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Buzz.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -26,7 +26,7 @@ aq.addFunction("sortedIncludesWithRemove", function(arr, i) {
     }
     return false
 })
- 
+
 function headers(features) {
     var descriptor_idx = [{"name": "feature", "idx": []}, {"name": "meta", "idx": []}];
     var descriptors = {};
@@ -34,7 +34,7 @@ function headers(features) {
         if (value.startsWith("feat")) {
             descriptors[value] = {
                 "type": "continuous",
-                "name": value, 
+                "name": value,
                 "selected": false,
                 "histogram": false,
                 "loaded": false
@@ -42,8 +42,8 @@ function headers(features) {
             descriptor_idx[0]["idx"].push(value);
         } else {
             descriptors[value] = {
-                "type": "nominal", 
-                "name": value, 
+                "type": "nominal",
+                "name": value,
                 "selected": false,
                 "loaded": false
             };

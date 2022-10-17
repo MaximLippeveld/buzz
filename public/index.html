@@ -1,18 +1,18 @@
 <!--
  Copyright (C) 2021 Maxim Lippeveld
- 
+
  This file is part of Buzz.
- 
+
  Buzz is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
+
  Buzz is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with Buzz.  If not, see <http://www.gnu.org/licenses/>.
 -->
@@ -37,7 +37,7 @@
     </style>
 </head>
 <body x-data="app = app()" x-init="setup()" class="w-full h-screen relative" x-on:keydown="brush(!brushEnabled, $event)" x-on:keydown.enter="brushed()">
-    
+
     <!-- initial dataset selector -->
     <div x-show="noDatasetLoaded && !scatterLoading" class="absolute left-2/4 top-1/4 w-96 -mx-48 h-48 font bold">
         <h1 class="font-bold text-xl mb-5">Welcome to Buzz!</h1>
@@ -64,9 +64,9 @@
                         <input type="text" class="p-1 mb-1 bg-gray-200" placeholder="Search..." @change="query($event, 'dims')" x-ref="queryDims">
                         <ul class="overflow-y-scroll flex-auto">
                             <template  x-for="idx in query_idx['dims']" :key="idx">
-                                <li 
-                                @click="selectDim(descriptors[idx])" 
-                                class="cursor-pointer w-full overflow-hidden overflow-ellipsis" 
+                                <li
+                                @click="selectDim(descriptors[idx])"
+                                class="cursor-pointer w-full overflow-hidden overflow-ellipsis"
                                 x-text="descriptors[idx].name"></li>
                             </template>
                         </ul>
@@ -157,7 +157,7 @@
                         <div class="flex flex-row">
                             <button x-on:click="if (deleteAllowed) removePopulation(pop.id)" :class="{ 'cursor-not-allowed': !deleteAllowed }"><i data-feather="trash-2"></i></button>
                             <button x-on:click="if (deleteAllowed) editPopulation(pop)" :class="{ 'cursor-not-allowed': !deleteAllowed }"><i data-feather="edit-2"></i></button>
-                        </div> 
+                        </div>
                     </div>
                 </template>
             </div>
@@ -170,14 +170,14 @@
                         <template x-if="item.name in query_idx">
                             <ul class="overflow-y-scroll flex-auto">
                                 <template  x-for="idx in query_idx[item.name]" :key="idx">
-                                    <li 
-                                    @click="reColor(descriptors[idx], true)" 
-                                    class="cursor-color-picker w-full overflow-hidden overflow-ellipsis" 
-                                    :class="{'font-bold': descriptors[idx].selected, 'opacity-50': !descriptors[idx].loaded}" 
+                                    <li
+                                    @click="reColor(descriptors[idx], true)"
+                                    class="cursor-color-picker w-full overflow-hidden overflow-ellipsis"
+                                    :class="{'font-bold': descriptors[idx].selected, 'opacity-50': !descriptors[idx].loaded}"
                                     x-text="descriptors[idx].name"></li>
                                 </template>
                             </ul>
-                        </template> 
+                        </template>
                     </div>
                 </template>
             </div>
@@ -196,10 +196,10 @@
             </div>
             <ul class="overflow-auto mb-5">
                 <template x-for="idx in query_idx['modal']" :key="idx">
-                    <li 
-                        @click="descriptors[idx].histogram = !descriptors[idx].histogram;" 
-                        class="cursor-pointer" 
-                        :class="{'font-bold': descriptors[idx].histogram, 'opacity-50': !descriptors[idx].loaded}" 
+                    <li
+                        @click="descriptors[idx].histogram = !descriptors[idx].histogram;"
+                        class="cursor-pointer"
+                        :class="{'font-bold': descriptors[idx].histogram, 'opacity-50': !descriptors[idx].loaded}"
                         x-text="descriptors[idx].name"></li>
                 </template>
             </ul>

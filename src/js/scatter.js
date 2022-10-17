@@ -1,17 +1,17 @@
 // Copyright (C) 2021 Maxim Lippeveld
-// 
+//
 // This file is part of Buzz.
-// 
+//
 // Buzz is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Buzz is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Buzz.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -26,7 +26,7 @@ export const scatter = function() {
     var height = d3.select("body").node().getBoundingClientRect().height;
     canvas.width = width;
     canvas.height = height;
-    
+
     const xScale = d3.scaleLinear()
             .domain(d3.extent(this.descriptor_data.array(this.dims[0])));
 
@@ -42,7 +42,7 @@ export const scatter = function() {
             yScale.domain(event.transform.rescaleY(yScaleOriginal).domain());
 
             this.annotations = [];
-            
+
             d3.select('d3fc-group')
                 .node()
                 .requestRedraw();
@@ -69,7 +69,7 @@ export const scatter = function() {
                             gl.ONE,
                             gl.ONE_MINUS_SRC_ALPHA
                         );
-                        
+
                         const leg = d3.select("#legend svg")
                         if (this.colorHue.type == "continuous") {
                             leg.selectAll("*").remove();
@@ -114,7 +114,7 @@ export const scatter = function() {
             sel
                 .select('d3fc-svg.y-axis')
                 .classed("invisible", true)
-            
+
             // the brush SVG is hidden initially so that exploration is possible
             sel
                 .select('d3fc-svg.svg-plot-area')
@@ -147,7 +147,7 @@ export const scatter = function() {
                 }.bind(this));
 
         }.bind(this));
-        
+
     function redraw() {
         var mapping = {columns: {index: "id"}};
         mapping["columns"][this.dims[0]] = "dim_1";

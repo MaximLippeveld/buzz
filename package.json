@@ -14,13 +14,13 @@
     "dev:web": "snowpack dev --polyfill-node",
     "dev:none": "snowpack dev --open none",
     "dev:html": "watch \"npm run dev:sass && npm run dev:postcss\" public -p '/.*css.*/'",
-    "dev:sass": "node-sass --output-style expanded --source-map true src/css/styles.scss public/css/styles.css",
+    "dev:sass": "sass --style expanded --source-map src/css/styles.scss public/css/styles.css",
     "dev:postcss": "postcss --config . --map true --output public/css/styles.css public/css/styles.css",
     "build": "npm run build:tailwind && npm run build:web",
     "build:web": "snowpack build",
     "build:tailwind": "npm run build:clean && npm run build:sass && npm run build:postcss && npm run build:cleancss",
     "build:clean": "rimraf public/css",
-    "build:sass": "node-sass --output-style compressed src/css/styles.scss public/css/styles.css",
+    "build:sass": "sass --output-style compressed src/css/styles.scss public/css/styles.css",
     "build:postcss": "cross-env NODE_ENV=production postcss --config . --map false --output public/css/styles.css public/css/styles.css",
     "build:cleancss": "cleancss -o public/css/styles.css public/css/styles.css"
   },
@@ -45,6 +45,7 @@
     "d3fc-brush": "^1.0.1",
     "feather-icons": "^4.28.0",
     "lodash": "^4.17.21",
+    "sass": "^1.55.0",
     "tailwindcss": "^2.0.3"
   },
   "devDependencies": {
@@ -54,13 +55,13 @@
     "concurrently": "^6.1.0",
     "cross-env": "^7.0.3",
     "http-server": "^0.12.3",
-    "node-sass": "^5.0.0",
     "nw": "^0.53.0",
     "nw-builder": "^3.5.7",
     "postcss": "^8.2.7",
     "postcss-cli": "^8.3.1",
     "postcss-scss": "^3.0.4",
     "rimraf": "^3.0.2",
+    "sass": "^1.55.0",
     "snowpack": "^3.6.2",
     "tailwindcss": "^2.0.1",
     "watch": "^1.0.2"

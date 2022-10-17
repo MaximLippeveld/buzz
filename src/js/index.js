@@ -1,17 +1,17 @@
 // Copyright (C) 2021 Maxim Lippeveld
-// 
+//
 // This file is part of Buzz.
-// 
+//
 // Buzz is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Buzz is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Buzz.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -23,7 +23,7 @@ import * as fc from 'd3fc';
 import { histogram_d3 } from './histogram';
 import feather from 'feather-icons';
 import * as _ from 'lodash';
-            
+
 window._ = _
 
 const backend = require("public/app.js");
@@ -89,7 +89,7 @@ const app = function() {
         setup() {
             this.resetState();
             feather.replace();
-            
+
             var menu = new nw.Menu({ type: "menubar"});
             var fileMenu = new nw.Menu();
             fileMenu.append(new nw.MenuItem({
@@ -141,13 +141,13 @@ const app = function() {
 
             console.time("data");
             [
-                this.header, 
-                this.descriptor_data, 
-                this.descriptor_idx, 
+                this.header,
+                this.descriptor_data,
+                this.descriptor_idx,
                 this.descriptors,
             ] = await backend.loadData(path);
             console.timeEnd("data");
-            
+
             this.meta["size"] = this.descriptor_data.numRows();
             this.meta["name"] = path;
             _.forEach(this.descriptors, (d, k) => d.loaded=true);
@@ -165,7 +165,7 @@ const app = function() {
             mapping["columns"][this.dims[0]] = "dim_1";
             mapping["columns"][this.dims[1]] = "dim_2";
 
-            this.$nextTick(async () => { 
+            this.$nextTick(async () => {
                 this.quadtree = d3
                     .quadtree()
                     .x(d => d.dim_1)
@@ -200,13 +200,13 @@ const app = function() {
                             "id": id,
                             "active": true
                         };
-                        
+
                         pop["color"] = this.colorScale(pop.id);
-                        
+
                         this.populations.push(pop);
-                        this.$nextTick(() => { 
+                        this.$nextTick(() => {
                             feather.replace()
-                            document.getElementById("population-"+pop.id).style.borderColor = pop.color 
+                            document.getElementById("population-"+pop.id).style.borderColor = pop.color
                         })
                     } else {
                         pop = this.currentPopulation;
@@ -259,7 +259,7 @@ const app = function() {
             this.populations.splice(i, 1)
             this.reColor(populationFeature, true)
 
-            if (this.visualizerActive) 
+            if (this.visualizerActive)
                 this.histograms();
         },
         editPopulation(pop) {
@@ -267,8 +267,8 @@ const app = function() {
             this.brushRange = pop.brushRange;
             this.brush(true);
             this.redraw();
-            
-            if (this.visualizerActive) 
+
+            if (this.visualizerActive)
                 this.histograms();
         },
         showPopulation() {
@@ -288,7 +288,7 @@ const app = function() {
                 case "nominal":
                     const uniques = Array.from(new Set(this.descriptor_data.column(feature.name)))
                     const scale = (uniques.length < 10 ?
-                        d3.scaleOrdinal().range(d3.schemeCategory10) : 
+                        d3.scaleOrdinal().range(d3.schemeCategory10) :
                         d3.scaleOrdinal().range(d3.quantize(d3.interpolateOrRd, uniques.length+1))
                     );
 

@@ -4,9 +4,9 @@
 npm run build
 
 # nwjs
-wget https://dl.nwjs.io/v0.54.0/nwjs-v0.54.0-linux-x64.tar.gz
-tar xzf nwjs-v0.54.0-linux-x64.tar.gz
-mv nwjs-v0.54.0-linux-x64/* buzz/
+wget -O nwjs.tar.gz https://dl.nwjs.io/v0.69.1/nwjs-v0.69.1-linux-x64.tar.gz
+tar xzf nwjs.tar.gz
+mv nwjs-v*/ buzz/
 mv buzz/nw buzz/buzz
 
 # node.js dependencies
